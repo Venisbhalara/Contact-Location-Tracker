@@ -22,6 +22,8 @@ const allowedOrigin = (origin, callback) => {
   if (!origin) return callback(null, true);
   // Exact match with CLIENT_URL env var
   if (origin === process.env.CLIENT_URL) return callback(null, true);
+  // Allow any Vercel deployment (for production before CLIENT_URL is pinned)
+  if (/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(origin)) return callback(null, true);
   // Always allow localhost (any port)
   if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return callback(null, true);
   // Allow local network IPs: 192.168.x.x, 10.x.x.x, 172.16-31.x.x

@@ -1,10 +1,10 @@
 import { updateLocation } from './api';
 import io from 'socket.io-client';
 
-// Always connect to the same host that served this page.
-// Vite's proxy routes /socket.io → http://localhost:5000 automatically.
-// This works on both localhost AND mobile devices on the same Wi-Fi.
-const SOCKET_URL = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+// In production (Vercel), VITE_SOCKET_URL points to the Render backend.
+// In local dev, falls back to window.location.origin so Vite's /socket.io proxy works.
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ||
+  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
 
 // Auto-refresh interval: 10 minutes (in milliseconds)
 const AUTO_REFRESH_INTERVAL_MS = 10 * 60 * 1000;

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import io from 'socket.io-client';
 
-// Always connect to the same origin so Vite's /socket.io proxy works on all devices.
-const SOCKET_URL = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+// In production (Vercel), VITE_SOCKET_URL points to the Render backend.
+// In local dev, falls back to window.location.origin so Vite's /socket.io proxy works.
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ||
+  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
 
 /**
  * useSocket — connects to the Socket.IO server and joins a tracking room.

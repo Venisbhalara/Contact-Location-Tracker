@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 const API = axios.create({
-  // Use relative path so Vite's proxy (/api → localhost:5000) works on all devices.
-  // This works on localhost AND on phone (any IP) without hardcoding anything.
-  baseURL: '/api',
+  // In production (Vercel), VITE_API_URL points to the Render backend URL.
+  // In local dev, falls back to '/api' so Vite's proxy still handles all devices.
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 

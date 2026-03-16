@@ -20,10 +20,27 @@ const TrackingLink = () => {
   const [countdown,   setCountdown]  = useState(REFRESH_INTERVAL_SEC) // seconds until next refresh
   const started      = useRef(false)
   const countdownRef = useRef(null)
+  const [deviceMismatch, setDeviceMismatch] = useState(null) // null | 'pc' | 'mobile'
 
-  // ── Load tracking info ──────────────────────────────────────
+  // ── Load tracking info & Check device ──────────────────────
   useEffect(() => {
     const load = async () => {
+      // 1. Device check
+      const urlParams = new URLSearchParams(window.location.search)
+      const requiredDevice = urlParams.get('device') // 'pc' or 'mobile'
+      
+      if (requiredDevice) {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        const currentDevice = isMobile ? 'mobile' : 'pc'
+
+        if (requiredDevice !== currentDevice) {
+          setDeviceMismatch(requiredDevice)
+          setLoading(false)
+          return
+        }
+      }
+
+      // 2. Load tracking
       try {
         const res = await getTrackingByToken(token)
         setTracking(res.data.tracking)
@@ -115,10 +132,25 @@ const TrackingLink = () => {
     return `${m}:${s}`
   }
 
-  // ── Loading ─────────────────────────────────────────────────
+  // ── Rendering ───────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
       <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+
+  if (deviceMismatch) return (
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+      <div className="card text-center max-w-md w-full border-red-500/50">
+        <div className="text-5xl mb-4">{deviceMismatch === 'pc' ? '💻' : '📱'}</div>
+        <h1 className="text-xl font-bold text-white mb-2">Device Mismatch</h1>
+        <p className="text-slate-400 text-sm mb-6">
+          This link is intended to be opened on a <strong>{deviceMismatch === 'pc' ? 'PC/Laptop' : 'Mobile device'}</strong>.
+        </p>
+        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-sm text-red-300">
+          Please copy this link and open it on the correct device to continue.
+        </div>
+      </div>
     </div>
   )
 

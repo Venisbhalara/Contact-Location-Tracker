@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Footer from "../components/Footer";
 
 const Home = () => {
   const { isAuthenticated } = useAuth();
@@ -108,17 +109,20 @@ const Home = () => {
       </section>
 
       {/* CTA */}
-      <section className="bg-indigo-900/20 border-y border-indigo-500/20 py-16 text-center px-4">
-        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-          Ready to start tracking?
-        </h2>
-        <p className="text-slate-400 mb-8">
-          Create your free account in seconds.
-        </p>
-        <Link to="/register" className="btn-primary text-base px-10 py-3.5">
-          Create Account
-        </Link>
-      </section>
+      {!isAuthenticated && (
+        <section className="bg-indigo-900/20 border-y border-indigo-500/20 py-16 text-center px-4">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
+            Ready to start tracking?
+          </h2>
+          <p className="text-slate-400 mb-8">
+            Create your free account in seconds.
+          </p>
+          <Link to="/register" className="btn-primary text-base px-10 py-3.5">
+            Create Account
+          </Link>
+        </section>
+      )}
+      <Footer />
     </div>
   );
 };

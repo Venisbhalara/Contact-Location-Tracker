@@ -9,8 +9,21 @@ const CreateTracking = () => {
   const [loading, setLoading] = useState(false)
   const [result,  setResult]  = useState(null)
 
+  const validateIndianNumber = (number) => {
+    // Basic regex for Indian number: optional +91, then 10 digits starting with 6-9
+    const regex = /^(?:\+91|91)?[6-9]\d{9}$/;
+    return regex.test(number.replace(/\s+/g, ''));
+  }
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); setLoading(true)
+    e.preventDefault();
+    
+    if (!validateIndianNumber(form.phoneNumber)) {
+      toast.error('Please enter a valid 10-digit Indian phone number.');
+      return;
+    }
+
+    setLoading(true)
     try {
       const res = await createTracking(form)
       setResult(res.data)
@@ -19,9 +32,10 @@ const CreateTracking = () => {
     finally { setLoading(false) }
   }
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(result.trackingLink)
-    toast.success('Link copied to clipboard!')
+  const copyLink = (device) => {
+    const link = device ? `${result.trackingLink}?device=${device}` : result.trackingLink;
+    navigator.clipboard.writeText(link)
+    toast.success(`${device ? device.toUpperCase() + ' ' : ''}Link copied to clipboard!`)
   }
 
   return (
@@ -36,9 +50,9 @@ const CreateTracking = () => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <div>
               <label className="label">Phone Number *</label>
-              <input className="input" required placeholder="+91 9876543210"
+              <input className="input" required placeholder="9876543210"
                 value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
-              <p className="text-xs text-slate-500 mt-1">The phone number you want to track.</p>
+              <p className="text-xs text-slate-500 mt-1">Enter a valid 10-digit Indian phone number.</p>
             </div>
 
             <div>
@@ -86,12 +100,29 @@ const CreateTracking = () => {
           <div className="text-center mb-6">
             <div className="text-4xl mb-3">✅</div>
             <h2 className="text-xl font-bold text-white">Tracking Link Ready!</h2>
-            <p className="text-slate-400 text-sm mt-1">Share this link with the person you want to track.</p>
+            <p className="text-slate-400 text-sm mt-1">Share the appropriate link with the person you want to track.</p>
           </div>
 
-          <div className="bg-slate-800 rounded-xl p-4 mb-4">
-            <p className="text-xs text-slate-500 mb-2">Tracking Link</p>
-            <p className="text-sm text-indigo-400 break-all font-mono">{result.trackingLink}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">💻 For PC/Laptop</span>
+                <button onClick={() => copyLink('pc')} className="text-indigo-400 hover:text-indigo-300">
+                  <span className="text-xs">📋 Copy</span>
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 break-all font-mono bg-slate-900/50 p-2 rounded">{result.trackingLink}?device=pc</p>
+            </div>
+
+            <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">📱 For Mobile</span>
+                <button onClick={() => copyLink('mobile')} className="text-emerald-400 hover:text-emerald-300">
+                  <span className="text-xs">📋 Copy</span>
+                </button>
+              </div>
+              <p className="text-xs text-slate-400 break-all font-mono bg-slate-900/50 p-2 rounded">{result.trackingLink}?device=mobile</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 mb-6 text-sm">
@@ -106,8 +137,7 @@ const CreateTracking = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
-            <button onClick={copyLink} className="btn-primary flex-1 text-sm">📋 Copy Link</button>
-            <button onClick={() => navigate(`/tracking/map/${result.token}`)} className="btn-secondary flex-1 text-sm">🗺️ Open Live Map</button>
+            <button onClick={() => navigate(`/tracking/map/${result.token}`)} className="btn-primary flex-1 text-sm">🗺️ Open Live Map</button>
             <button onClick={() => setResult(null)} className="btn-secondary flex-1 text-sm">+ New Link</button>
           </div>
         </div>

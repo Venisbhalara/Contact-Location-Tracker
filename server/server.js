@@ -149,7 +149,7 @@ const start = async () => {
     console.log(" MySQL Connected.");
 
     // Create/update all tables automatically
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     console.log(" Tables synced: users, contacts, tracking_requests");
 
     // Bind to 0.0.0.0 so the server is reachable from phones on the same Wi-Fi

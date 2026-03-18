@@ -36,16 +36,20 @@ const TrackingRequest = sequelize.define(
       unique: true,
     },
     latitude: {
-      type: DataTypes.DECIMAL(11, 8), // 11 total = 3 before decimal (handles -90 to 90 safely)
+      type: DataTypes.DECIMAL(11, 8),
       allowNull: true,
       defaultValue: null,
     },
     longitude: {
-      type: DataTypes.DECIMAL(12, 8), // 12 total = 4 before decimal (handles -180 to 180 safely)
+      type: DataTypes.DECIMAL(12, 8),
       allowNull: true,
       defaultValue: null,
     },
-
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
+    },
     accuracy: {
       type: DataTypes.FLOAT,
       allowNull: true,

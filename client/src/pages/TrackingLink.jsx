@@ -138,19 +138,6 @@ const TrackingLink = () => {
       </div>
     );
 
-  if (tracking?.status === "expired")
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
-        <div className="card text-center max-w-md w-full">
-          <div className="text-5xl mb-4">⏰</div>
-          <h1 className="text-xl font-bold text-white mb-2">Link Expired</h1>
-          <p className="text-slate-400 text-sm">
-            This tracking link has expired and is no longer valid.
-          </p>
-        </div>
-      </div>
-    );
-
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -172,10 +159,6 @@ const TrackingLink = () => {
                 <li>• User Responsibility</li>
                 <li>• Data Security & Limitations</li>
                 <li>• Accuracy & Reliability</li>
-                <li>
-                  • This link expires on{" "}
-                  {new Date(tracking?.expiresAt).toLocaleString()}
-                </li>
               </ul>
             </div>
             <div className="flex flex-col gap-3">

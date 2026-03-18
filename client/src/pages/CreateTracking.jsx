@@ -8,7 +8,6 @@ const CreateTracking = () => {
   const [form, setForm] = useState({
     phoneNumber: "",
     trackingType: "location",
-    expiryHours: 24,
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -88,25 +87,6 @@ const CreateTracking = () => {
               </div>
             </div>
 
-            <div>
-              <label className="label">Link Expiry</label>
-              <select
-                className="input"
-                value={form.expiryHours}
-                onChange={(e) =>
-                  setForm({ ...form, expiryHours: parseInt(e.target.value) })
-                }
-              >
-                <option value={1}>1 hour</option>
-                <option value={6}>6 hours</option>
-                <option value={12}>12 hours</option>
-                <option value={24}>24 hours (default)</option>
-                <option value={48}>48 hours</option>
-                <option value={72}>3 days</option>
-                <option value={168}>7 days</option>
-              </select>
-            </div>
-
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 text-sm text-yellow-300">
               ⚠️ The recipient must{" "}
               <strong>explicitly allow location access</strong> before any data
@@ -142,12 +122,6 @@ const CreateTracking = () => {
               <p className="text-slate-500 text-xs">Phone</p>
               <p className="text-white font-medium">
                 {result.tracking.phoneNumber}
-              </p>
-            </div>
-            <div className="bg-slate-800 rounded-xl p-3">
-              <p className="text-slate-500 text-xs">Expires</p>
-              <p className="text-white font-medium">
-                {new Date(result.tracking.expiresAt).toLocaleString()}
               </p>
             </div>
           </div>

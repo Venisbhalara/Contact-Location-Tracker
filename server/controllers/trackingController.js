@@ -3,13 +3,6 @@ const { validationResult } = require("express-validator");
 const { TrackingRequest } = require("../models");
 const { Op } = require("sequelize");
 
-// ─── Helper: expiry time (24 hours from now by default) ───────
-const getExpiryDate = (hours = 24) => {
-  const expiry = new Date();
-  expiry.setHours(expiry.getHours() + hours);
-  return expiry;
-};
-
 // ─── @route   POST /api/tracking/create ──────────────────────
 // ─── @desc    Generate a new tracking link with a unique token
 // ─── @access  Private
@@ -33,7 +26,6 @@ const createTracking = async (req, res) => {
       trackingType: trackingType || "location",
       token,
       status: "pending",
-      expiresAt: getExpiryDate(parseInt(expiryHours)),
     });
 
     // Build the shareable tracking URL
@@ -64,12 +56,10 @@ const createTracking = async (req, res) => {
     });
   } catch (error) {
     console.error("Create tracking error:", error);
-    res
-      .status(500)
-      .json({
-        message: "Server error while creating tracking link.",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error while creating tracking link.",
+      error: error.message,
+    });
   }
 };
 
@@ -93,14 +83,6 @@ const updateLocation = async (req, res) => {
       return res
         .status(404)
         .json({ message: "Tracking request not found. Invalid token." });
-    }
-
-    // Check expiry
-    if (tracking.isExpired()) {
-      await tracking.update({ status: "expired" });
-      return res
-        .status(410)
-        .json({ message: "This tracking link has expired." });
     }
 
     // Update location and mark as active
@@ -129,12 +111,10 @@ const updateLocation = async (req, res) => {
       .json({ message: "Location updated successfully!", latitude, longitude });
   } catch (error) {
     console.error("Update location error for token:", token, error);
-    res
-      .status(500)
-      .json({
-        message: "Server error while updating location. Please try again.",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error while updating location. Please try again.",
+      error: error.message,
+    });
   }
 };
 
@@ -164,21 +144,13 @@ const getTrackingByToken = async (req, res) => {
       return res.status(404).json({ message: "Tracking request not found." });
     }
 
-    // Auto-expire if past expiry date
-    if (tracking.isExpired() && tracking.status !== "expired") {
-      await tracking.update({ status: "expired" });
-      tracking.status = "expired";
-    }
-
     res.status(200).json({ tracking });
   } catch (error) {
     console.error("Get tracking error:", error);
-    res
-      .status(500)
-      .json({
-        message: "Server error while fetching tracking info.",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error while fetching tracking info.",
+      error: error.message,
+    });
   }
 };
 
@@ -211,12 +183,10 @@ const getUserTrackings = async (req, res) => {
     });
   } catch (error) {
     console.error("Get user trackings error:", error);
-    res
-      .status(500)
-      .json({
-        message: "Server error while fetching tracking requests.",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error while fetching tracking requests.",
+      error: error.message,
+    });
   }
 };
 
@@ -245,12 +215,10 @@ const deleteTracking = async (req, res) => {
     res.status(200).json({ message: "Tracking request deleted successfully." });
   } catch (error) {
     console.error("Delete tracking error:", error);
-    res
-      .status(500)
-      .json({
-        message: "Server error while deleting tracking request.",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error while deleting tracking request.",
+      error: error.message,
+    });
   }
 };
 

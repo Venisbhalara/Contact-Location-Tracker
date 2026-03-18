@@ -52,13 +52,9 @@ const TrackingRequest = sequelize.define(
       defaultValue: null,
     },
     status: {
-      type: DataTypes.ENUM("pending", "active", "expired"),
+      type: DataTypes.ENUM("pending", "active"),
       allowNull: false,
       defaultValue: "pending",
-    },
-    expiresAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
     },
     lastUpdatedAt: {
       type: DataTypes.DATE,
@@ -76,10 +72,5 @@ const TrackingRequest = sequelize.define(
     ],
   },
 );
-
-// Instance method: check if tracking link is expired
-TrackingRequest.prototype.isExpired = function () {
-  return new Date() > new Date(this.expiresAt);
-};
 
 module.exports = TrackingRequest;

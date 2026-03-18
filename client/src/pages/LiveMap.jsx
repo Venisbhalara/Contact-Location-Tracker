@@ -333,7 +333,7 @@ const LiveMap = () => {
               ? `${activePos.latitude?.toFixed(8)}, ${activePos.longitude?.toFixed(8)}`
               : "—"}
           </p>
-          <button
+          {/* <button
             onClick={() => {
               navigator.clipboard.writeText(
                 `${activePos?.latitude?.toFixed(8)}, ${activePos?.longitude?.toFixed(8)}`,
@@ -343,7 +343,7 @@ const LiveMap = () => {
             className="text-xs text-slate-500 hover:text-white mt-1 transition-colors"
           >
             Copy
-          </button>
+          </button> */}
           {/* ← ADD THIS BUTTON */}
           <a
             href={`https://www.google.com/maps?q=${activePos.latitude?.toFixed(8)},${activePos.longitude?.toFixed(8)}&z=18`}

@@ -203,7 +203,6 @@ const LiveMap = () => {
                   <p className="font-semibold text-gray-800 mb-1">
                     📞 {tracking?.phoneNumber}
                   </p>
-
                   {addrLoading ? (
                     <p className="text-gray-400 text-xs">Fetching address...</p>
                   ) : address ? (
@@ -238,7 +237,13 @@ const LiveMap = () => {
                       {activePos.longitude?.toFixed(6)}
                     </p>
                   )}
-
+                  {/* REPLACE WITH THIS: */}
+                  <div className="bg-gray-100 rounded p-2 mt-2">
+                    <p className="text-gray-600 text-xs font-mono">
+                      {activePos.latitude?.toFixed(8)},{" "}
+                      {activePos.longitude?.toFixed(8)}
+                    </p>
+                  </div>
                   {location?.accuracy && (
                     <p className="text-gray-400 text-xs mt-1">
                       GPS ±{Math.round(location.accuracy)}m
@@ -321,6 +326,26 @@ const LiveMap = () => {
             {location?.accuracy ? `±${Math.round(location.accuracy)}m` : "—"}
           </p>
         </div>
+        <div className="card col-span-2">
+          <p className="text-xs text-slate-500 mb-1">Exact coordinates</p>
+          <p className="font-mono text-sm text-indigo-400">
+            {activePos
+              ? `${activePos.latitude?.toFixed(8)}, ${activePos.longitude?.toFixed(8)}`
+              : "—"}
+          </p>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(
+                `${activePos?.latitude?.toFixed(8)}, ${activePos?.longitude?.toFixed(8)}`,
+              );
+              toast.success("Coordinates copied!");
+            }}
+            className="text-xs text-slate-500 hover:text-white mt-1 transition-colors"
+          >
+            Copy
+          </button>
+        </div>
+
         <div className="card">
           <p className="text-xs text-slate-500 mb-1">🛣️ Road</p>
           <p className="text-sm text-white truncate">{address?.road || "—"}</p>

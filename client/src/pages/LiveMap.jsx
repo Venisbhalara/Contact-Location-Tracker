@@ -328,23 +328,26 @@ const LiveMap = () => {
         </div>
         <div className="card col-span-2">
           <p className="text-xs text-slate-500 mb-1">Exact coordinates</p>
-          <p className="font-mono text-sm text-indigo-400">
-            {activePos
-              ? `${activePos.latitude?.toFixed(8)}, ${activePos.longitude?.toFixed(8)}`
-              : "—"}
-          </p>{" "}
-          <br />
-          <a
-            href={`https://www.google.com/maps?q=${activePos.latitude?.toFixed(8)},${activePos.longitude?.toFixed(8)}&z=18`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-            </svg>
-            Search on Google Maps
-          </a>
+          {activePos ? (
+            <>
+              <p className="font-mono text-sm text-indigo-400 mb-2">
+                {activePos.latitude.toFixed(8)}, {activePos.longitude.toFixed(8)}
+              </p>
+              <a
+                href={`https://www.google.com/maps?q=${activePos.latitude.toFixed(8)},${activePos.longitude.toFixed(8)}&z=18`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                </svg>
+                Search on Google Maps
+              </a>
+            </>
+          ) : (
+            <p className="font-mono text-sm text-slate-500">—</p>
+          )}
         </div>
 
         <div className="card">

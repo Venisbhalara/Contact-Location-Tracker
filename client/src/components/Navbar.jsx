@@ -26,7 +26,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 font-bold text-lg text-white">
             <span className="text-2xl">📍</span>
-            <span className="hidden sm:block">Contact<span className="text-indigo-400">Tracker</span></span>
+            <span className="hidden sm:block">Location<span className="text-indigo-400">Tracker</span></span>
           </Link>
 
           {/* Desktop Nav */}

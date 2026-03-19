@@ -97,7 +97,7 @@ app.use("/api/tracking", require("./routes/tracking"));
 // Health check
 app.get("/", (req, res) => {
   res.json({
-    message: " Contact & Location Tracker API is running!",
+    message: " Location Tracker API is running!",
     status: "OK",
     database: "MySQL",
     timestamp: new Date().toISOString(),
@@ -165,6 +165,25 @@ const start = async () => {
         ` Database: ${process.env.DB_NAME}@${process.env.DB_HOST}:${process.env.DB_PORT}`,
       );
       console.log(` Socket.IO ready`);
+
+      // ── Keep-alive pinger (Render free tier) ──────────────────────────
+      // Render spins down free instances after ~15 min of inactivity.
+      // We self-ping every 14 min so the server never goes to sleep.
+      if (process.env.NODE_ENV === "production" && process.env.RENDER_EXTERNAL_URL) {
+        const pingUrl = process.env.RENDER_EXTERNAL_URL;
+        const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
+
+        setInterval(() => {
+          const protocol = pingUrl.startsWith("https") ? require("https") : require("http");
+          protocol.get(pingUrl, (res) => {
+            console.log(` Keep-alive ping → ${res.statusCode}`);
+          }).on("error", (err) => {
+            console.error(" Keep-alive ping failed:", err.message);
+          });
+        }, PING_INTERVAL_MS);
+
+        console.log(` Keep-alive pinger active (every 14 min) → ${pingUrl}`);
+      }
     });
   } catch (err) {
     console.error(" Failed to start server:", err.message);

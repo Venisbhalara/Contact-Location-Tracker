@@ -1,4 +1,4 @@
-# Contact & Location Tracker — Deployment Guide
+# Location Tracker — Deployment Guide
 
 ## 🖥️ Local Development
 

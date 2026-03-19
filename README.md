@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📍 Contact & Location Tracker
+# 📍 Location Tracker
 
 **A real-time full-stack application to share and track live GPS locations securely.**
 

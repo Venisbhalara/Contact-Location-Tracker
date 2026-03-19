@@ -1,7 +1,7 @@
 {
   "name": "contact-tracker-server",
   "version": "1.0.0",
-  "description": "Contact & Location Tracker Backend API",
+  "description": "Location Tracker Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

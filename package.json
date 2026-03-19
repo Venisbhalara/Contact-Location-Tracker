@@ -1,7 +1,7 @@
 {
   "name": "contact-tracker",
   "version": "1.0.0",
-  "description": "Contact & Location Tracker — Full-Stack App",
+  "description": "Location Tracker — Full-Stack App",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "npm run dev --prefix server",

@@ -15,7 +15,6 @@ const sequelize = require("./config/db");
 // Track location updates for the admin dashboard
 global.locationUpdatesToday = 0;
 
-
 // Import models to register them with Sequelize (must happen before sync)
 const { User, Contact, TrackingRequest } = require("./models/index");
 
@@ -143,11 +142,11 @@ io.on("connection", (socket) => {
     };
 
     io.to(token).emit("location-update", payload);
-    
+
     // Broadcast directly to God-mode room
     io.to("admin_global").emit("admin-location-update", {
       token,
-      ...payload
+      ...payload,
     });
   });
 
@@ -175,9 +174,34 @@ const start = async () => {
     await sequelize.authenticate();
     console.log(" MySQL Connected.");
 
-    // Create/update all tables automatically to ensure production matches models
-    await sequelize.sync({ alter: true });
-    console.log(" Tables synced: users, contacts, tracking_requests");
+    const ensureColumns = async () => {
+      try {
+        await sequelize.query(`
+      ALTER TABLE users 
+        ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'user',
+        ADD COLUMN IF NOT EXISTS access_status VARCHAR(20) NOT NULL DEFAULT 'approved',
+        ADD COLUMN IF NOT EXISTS tracking_access TINYINT(1) NOT NULL DEFAULT 0,
+        ADD COLUMN IF NOT EXISTS last_login_at DATETIME NULL DEFAULT NULL
+    `);
+        console.log(" User columns verified");
+      } catch (err) {
+        // Columns already exist — that is fine
+        if (!err.message.includes("Duplicate column")) {
+          console.warn(" ensureColumns warning:", err.message);
+        }
+      }
+    };
+
+    await ensureColumns();
+
+    // Sync models with database
+    try {
+      await sequelize.sync({ alter: true });
+      console.log(" Tables synced successfully");
+    } catch (syncErr) {
+      console.error(" SYNC FAILED:", syncErr.message);
+      console.error(" SQL:", syncErr.original?.sqlMessage);
+    }
 
     // Bind to 0.0.0.0 so the server is reachable from phones on the same Wi-Fi
     server.listen(PORT, "0.0.0.0", () => {
@@ -191,17 +215,24 @@ const start = async () => {
       // ── Keep-alive pinger (Render free tier) ──────────────────────────
       // Render spins down free instances after ~15 min of inactivity.
       // We self-ping every 14 min so the server never goes to sleep.
-      if (process.env.NODE_ENV === "production" && process.env.RENDER_EXTERNAL_URL) {
+      if (
+        process.env.NODE_ENV === "production" &&
+        process.env.RENDER_EXTERNAL_URL
+      ) {
         const pingUrl = process.env.RENDER_EXTERNAL_URL;
         const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
 
         setInterval(() => {
-          const protocol = pingUrl.startsWith("https") ? require("https") : require("http");
-          protocol.get(pingUrl, (res) => {
-            console.log(` Keep-alive ping → ${res.statusCode}`);
-          }).on("error", (err) => {
-            console.error(" Keep-alive ping failed:", err.message);
-          });
+          const protocol = pingUrl.startsWith("https")
+            ? require("https")
+            : require("http");
+          protocol
+            .get(pingUrl, (res) => {
+              console.log(` Keep-alive ping → ${res.statusCode}`);
+            })
+            .on("error", (err) => {
+              console.error(" Keep-alive ping failed:", err.message);
+            });
         }, PING_INTERVAL_MS);
 
         console.log(` Keep-alive pinger active (every 14 min) → ${pingUrl}`);

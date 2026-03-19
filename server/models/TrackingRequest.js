@@ -51,9 +51,14 @@ const TrackingRequest = sequelize.define(
       defaultValue: null,
     },
     status: {
-      type: DataTypes.ENUM("pending", "active"),
+      type: DataTypes.ENUM("pending", "active", "completed", "expired"),
       allowNull: false,
       defaultValue: "pending",
+    },
+    expiresAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      defaultValue: null,
     },
     lastUpdatedAt: {
       type: DataTypes.DATE,

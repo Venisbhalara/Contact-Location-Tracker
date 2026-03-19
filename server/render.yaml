@@ -28,4 +28,6 @@ services:
       - key: JWT_EXPIRE
         value: 7d
       - key: CLIENT_URL
-        sync: false
+        value: https://cttracker.vercel.app
+      - key: ALLOW_ALL_ORIGINS
+        value: false

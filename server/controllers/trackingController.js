@@ -20,12 +20,18 @@ const createTracking = async (req, res) => {
     // Generate a unique UUID token
     const token = uuidv4();
 
+    // Calculate expiry time
+    const expiresAt = new Date(
+      Date.now() + parseInt(expiryHours) * 60 * 60 * 1000
+    );
+
     const tracking = await TrackingRequest.create({
       userId: req.user.id,
       phoneNumber,
       trackingType: trackingType || "location",
       token,
       status: "pending",
+      expiresAt,
     });
 
     // Build the shareable tracking URL
@@ -55,10 +61,11 @@ const createTracking = async (req, res) => {
       tracking,
     });
   } catch (error) {
-    console.error("Create tracking error:", error);
+    console.error("Create tracking error:", error.message);
+    console.error("Stack:", error.stack);
     res.status(500).json({
       message: "Server error while creating tracking link.",
-      error: error.message,
+      error: process.env.NODE_ENV === "production" ? error.message : error.stack,
     });
   }
 };

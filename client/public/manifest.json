@@ -1,0 +1,17 @@
+{
+  "name": "Live Location Tracker",
+  "short_name": "Tracker",
+  "description": "A persistent live location tracking progressive web app.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#317EFB",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

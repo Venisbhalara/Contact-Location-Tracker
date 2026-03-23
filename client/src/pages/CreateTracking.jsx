@@ -161,8 +161,8 @@ const CreateTracking = () => {
 
             <div>
               <label className="label font-medium mb-3 block">Tracking Type *</label>
-              <div className="grid grid-cols-2 gap-4 mt-1">
-                {["location", "contact"].map((type) => (
+              <div className="grid grid-cols-1 gap-4 mt-1">
+                {["location"].map((type) => (
                   <button
                     key={type}
                     type="button"

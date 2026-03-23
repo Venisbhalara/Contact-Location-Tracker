@@ -7,7 +7,7 @@ const Home           = lazy(() => import('./pages/Home'))
 const Login          = lazy(() => import('./pages/Login'))
 const Register       = lazy(() => import('./pages/Register'))
 const Dashboard      = lazy(() => import('./pages/Dashboard'))
-const Contacts       = lazy(() => import('./pages/Contacts'))
+
 const CreateTracking = lazy(() => import('./pages/CreateTracking'))
 const TrackingLink   = lazy(() => import('./pages/TrackingLink'))
 const LiveMap        = lazy(() => import('./pages/LiveMap'))
@@ -61,7 +61,7 @@ function App() {
             {/* Protected */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard"           element={<Dashboard />} />
-              <Route path="/contacts"            element={<Contacts />} />
+
               <Route path="/tracking/create"     element={<CreateTracking />} />
               <Route path="/tracking/map/:token" element={<LiveMap />} />
             </Route>

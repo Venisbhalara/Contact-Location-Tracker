@@ -21,11 +21,6 @@ export const registerUser   = (data)  => API.post('/auth/register', data);
 export const loginUser      = (data)  => API.post('/auth/login', data);
 export const getMe          = ()      => API.get('/auth/me');
 
-// Contacts
-export const getContacts    = (params) => API.get('/contacts', { params });
-export const createContact  = (data)   => API.post('/contacts', data);
-export const updateContact  = (id, data) => API.put(`/contacts/${id}`, data);
-export const deleteContact  = (id)     => API.delete(`/contacts/${id}`);
 
 // Tracking
 export const createTracking       = (data)   => API.post('/tracking/create', data);

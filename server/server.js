@@ -16,7 +16,7 @@ const sequelize = require("./config/db");
 global.locationUpdatesToday = 0;
 
 // Import models to register them with Sequelize (must happen before sync)
-const { User, Contact, TrackingRequest } = require("./models/index");
+const { User, TrackingRequest } = require("./models/index");
 
 const app = express();
 const server = http.createServer(app);
@@ -94,7 +94,7 @@ app.set("io", io);
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/contacts", require("./routes/contacts"));
+
 app.use("/api/tracking", require("./routes/tracking"));
 app.use("/api/access", require("./routes/access"));
 app.use("/api/admin", require("./routes/admin"));

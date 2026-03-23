@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
-const { User, TrackingRequest, Contact, AccessRequest } = require("../models/index");
+const { User, TrackingRequest, AccessRequest } = require("../models/index");
 const sendEmail = require("../utils/sendEmail");
 
 // Middleware to protect admin routes

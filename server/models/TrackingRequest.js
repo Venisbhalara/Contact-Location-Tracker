@@ -26,7 +26,7 @@ const TrackingRequest = sequelize.define(
       },
     },
     trackingType: {
-      type: DataTypes.ENUM("contact", "location"),
+      type: DataTypes.ENUM("location"),
       allowNull: false,
       defaultValue: "location",
     },

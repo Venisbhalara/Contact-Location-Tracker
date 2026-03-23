@@ -20,11 +20,7 @@ const Home = () => {
       title: "Interactive Map",
       desc: "View live location on a full Leaflet map with movement path.",
     },
-    {
-      icon: "👥",
-      title: "Contact Management",
-      desc: "Store and manage all your contacts in one place.",
-    },
+
     {
       icon: "🔒",
       title: "Privacy First",

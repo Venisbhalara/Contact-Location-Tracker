@@ -47,7 +47,7 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 <NavLink to="/dashboard"       className={navClass}>Dashboard</NavLink>
-                <NavLink to="/contacts"        className={navClass}>Contacts</NavLink>
+
                 <NavLink to="/tracking/create" className={navClass}>New Tracking</NavLink>
                 {user?.email === 'vasu@gmail.com' && (
                   <NavLink to="/admin" className={navClass}>
@@ -99,7 +99,7 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>
               <NavLink to="/dashboard"       className={navClass} onClick={() => setMenuOpen(false)}>Dashboard</NavLink>
-              <NavLink to="/contacts"        className={navClass} onClick={() => setMenuOpen(false)}>Contacts</NavLink>
+
               <NavLink to="/tracking/create" className={navClass} onClick={() => setMenuOpen(false)}>New Tracking</NavLink>
               {user?.email === 'vasu@gmail.com' && (
                 <NavLink to="/admin" className={navClass} onClick={() => setMenuOpen(false)}>

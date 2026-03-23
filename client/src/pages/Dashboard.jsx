@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getUserTrackings, getContacts, deleteTracking } from '../services/api'
+import { getUserTrackings, deleteTracking } from '../services/api'
 import toast from 'react-hot-toast'
 
 const statusBadge = (status) => {
@@ -12,17 +12,15 @@ const statusBadge = (status) => {
 const Dashboard = () => {
   const { user } = useAuth()
   const [trackings,  setTrackings]  = useState([])
-  const [contacts,   setContacts]   = useState([])
+
   const [loading,    setLoading]    = useState(true)
 
   const load = async () => {
     try {
-      const [tRes, cRes] = await Promise.all([
+      const [tRes] = await Promise.all([
         getUserTrackings({ limit: 5 }),
-        getContacts({ limit: 5 }),
       ])
       setTrackings(tRes.data.trackings)
-      setContacts(cRes.data.contacts)
     } catch {
       toast.error('Failed to load dashboard data.')
     } finally {
@@ -42,7 +40,7 @@ const Dashboard = () => {
   }
 
   const stats = [
-    { label: 'Total Contacts',  value: contacts.length,                    icon: '👥', color: 'text-blue-400' },
+
     { label: 'Active Trackings', value: trackings.filter(t => t.status === 'active').length, icon: '📡', color: 'text-emerald-400' },
     { label: 'Pending Links',   value: trackings.filter(t => t.status === 'pending').length, icon: '⏳', color: 'text-yellow-400' },
     { label: 'Expired Links',   value: trackings.filter(t => t.status === 'expired').length, icon: '🔴', color: 'text-red-400' },
@@ -78,7 +76,7 @@ const Dashboard = () => {
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3 mb-8">
         <Link to="/tracking/create" className="btn-primary text-sm">+ New Tracking Link</Link>
-        <Link to="/contacts"        className="btn-secondary text-sm">Manage Contacts</Link>
+
       </div>
 
       {/* Recent Tracking Requests */}
@@ -128,33 +126,7 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Recent Contacts */}
-      <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-white">Recent Contacts</h2>
-          <Link to="/contacts" className="text-xs text-indigo-400 hover:underline">View all</Link>
-        </div>
-        {contacts.length === 0 ? (
-          <div className="text-center py-8 text-slate-500">
-            <div className="text-3xl mb-2">👤</div>
-            <p className="text-sm">No contacts yet.</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-slate-800">
-            {contacts.map((c) => (
-              <div key={c.id} className="py-3 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-semibold text-sm flex-shrink-0">
-                  {c.name[0].toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{c.name}</p>
-                  <p className="text-xs text-slate-500">{c.phone}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+
     </div>
   )
 }

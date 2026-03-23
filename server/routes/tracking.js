@@ -21,8 +21,8 @@ const createValidation = [
     .withMessage("Phone must be between 7 and 20 characters"),
   body("trackingType")
     .optional()
-    .isIn(["contact", "location"])
-    .withMessage("Tracking type must be contact or location"),
+    .isIn(["location"])
+    .withMessage("Tracking type must be location"),
 ];
 
 const locationValidation = [

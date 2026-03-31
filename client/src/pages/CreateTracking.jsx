@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createTracking, getAccessStatus, requestAccess } from "../services/api";
 import toast from "react-hot-toast";
 import LoadingScreen from "../components/LoadingScreen";
+import useSocket from "../hooks/useSocket";
 
 const CreateTracking = () => {
   const navigate = useNavigate();
@@ -12,6 +13,23 @@ const CreateTracking = () => {
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+
+  // Monitor target user's interaction
+  const { location, permissionDenied } = useSocket(result?.token);
+
+  useEffect(() => {
+    if (location) {
+      toast.success("Target allowed location! Redirecting to map...", { id: "redirect-toast", duration: 3000 });
+      const timer = setTimeout(() => navigate(`/tracking/map/${result.token}`), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [location, navigate, result]);
+
+  useEffect(() => {
+    if (permissionDenied) {
+      toast.error("Target rejected the location permission.", { id: "denied-toast", duration: 5000 });
+    }
+  }, [permissionDenied]);
 
   // Access State
   const [access, setAccess] = useState(null);

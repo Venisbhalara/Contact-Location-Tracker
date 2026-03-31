@@ -119,13 +119,13 @@ const AdminDashboard = () => {
               <span className="text-xl">🛡️</span>
               Security & Settings
             </Link>
-            <Link
+            {/* <Link
               to="/contacts"
               className="flex items-center gap-3 p-4 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-transparent hover:border-indigo-500 text-slate-300 hover:text-indigo-400 font-medium"
             >
               <span className="text-xl">👥</span>
               Manage Contacts
-            </Link>
+            </Link> */}
             <Link
               to="/tracking/create"
               className="flex items-center gap-3 p-4 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors border border-transparent hover:border-indigo-500 text-slate-300 hover:text-indigo-400 font-medium"

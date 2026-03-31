@@ -205,12 +205,16 @@ const LiveMap = () => {
         </div>
       )}
 
-      {/* Map */}
-      <div
-        className="card p-0 overflow-hidden mb-4"
-        style={{ height: "60vh", minHeight: "350px" }}
-      >
-        {activePos ? (
+      {/* Main Content Layout */}
+      <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        
+        {/* Left Column: Vertical Map */}
+        <div className="w-full lg:w-1/3 xl:w-[35%] lg:sticky lg:top-6 h-fit">
+          <div
+            className="card p-0 overflow-hidden shadow-2xl border-indigo-500/20 ring-1 ring-white/5"
+            style={{ height: "calc(100vh - 160px)", minHeight: "600px" }}
+          >
+            {activePos ? (
           <MapContainer
             center={[activePos.latitude, activePos.longitude]}
             zoom={15}
@@ -327,11 +331,18 @@ const LiveMap = () => {
             </p>
           </div>
         )}
-      </div>
+          </div>
+        </div>
 
-      {/* Info Cards — Address focused */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <div className="card col-span-2">
+        {/* Right Column: Tracking Details */}
+        <div className="w-full lg:w-2/3 xl:w-[65%] flex flex-col gap-6">
+          <div className="space-y-4">
+            <h2 className="text-lg font-medium text-white/90 border-b border-white/10 pb-2">
+              📍 Location Insights
+            </h2>
+            {/* Info Cards — Address focused */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 gap-4">
+        <div className="card col-span-2 sm:col-span-3 xl:col-span-3">
           <p className="text-xs text-slate-500 mb-1">📍 Address</p>
           {addrLoading ? (
             <p className="text-xs text-indigo-400 animate-pulse">
@@ -387,7 +398,7 @@ const LiveMap = () => {
             {location?.accuracy ? `±${Math.round(location.accuracy)}m` : "—"}
           </p>
         </div>
-        <div className="card col-span-2">
+        <div className="card col-span-2 sm:col-span-2">
           <p className="text-xs text-slate-500 mb-1">Exact coordinates</p>
           {activePos ? (
             <>
@@ -424,13 +435,19 @@ const LiveMap = () => {
           <p className="font-semibold text-white">{locationHistory.length}</p>
         </div>
       </div>
+    </div>
 
+    <div className="space-y-4">
+      <h2 className="text-lg font-medium text-white/90 border-b border-white/10 pb-2">
+        🔗 Share Tracking
+      </h2>
       {/* Share link */}
-      <div className="card">
-        <p className="text-sm text-slate-400 mb-2">
+      <div className="card relative overflow-hidden border-indigo-500/10 shadow-lg group">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-indigo-500/10 transition-colors duration-700" />
+        <p className="text-sm text-slate-400 mb-2 relative z-10">
           Tracking Link (share with target)
         </p>
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 relative z-10">
           <input
             readOnly
             className="input flex-1 text-xs font-mono"
@@ -445,6 +462,9 @@ const LiveMap = () => {
         </div>
       </div>
     </div>
+  </div>
+</div>
+</div>
   );
 };
 

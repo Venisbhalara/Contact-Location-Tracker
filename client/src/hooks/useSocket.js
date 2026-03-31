@@ -21,6 +21,7 @@ const useSocket = (token) => {
   const [locationHistory, setHistory]         = useState([]);     // array of past positions (for path)
   const [error,           setError]           = useState(null);
   const [trackingStopped, setTrackingStopped] = useState(false);  // true when sharer stops
+  const [permissionDenied, setPermissionDenied] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -64,6 +65,10 @@ const useSocket = (token) => {
       setConnected(false);
     });
 
+    socket.on('permission-denied', () => {
+      setPermissionDenied(true);
+    });
+
     // Cleanup on unmount or token change
     return () => {
       socket.disconnect();
@@ -74,7 +79,7 @@ const useSocket = (token) => {
 
   const clearHistory = useCallback(() => setHistory([]), []);
 
-  return { connected, location, locationHistory, error, trackingStopped, clearHistory };
+  return { connected, location, locationHistory, error, trackingStopped, permissionDenied, clearHistory };
 };
 
 export default useSocket;

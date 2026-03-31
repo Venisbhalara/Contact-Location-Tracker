@@ -4,6 +4,9 @@ import { getTrackingByToken } from "../services/api";
 import locationService from "../services/locationService";
 import geocodingService from "../services/geocodingService";
 import toast from "react-hot-toast";
+import io from "socket.io-client";
+
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
 
 // Auto-refresh interval in seconds (matches locationService.js)
 const REFRESH_INTERVAL_SEC = 10 * 60;
@@ -57,6 +60,15 @@ const TrackingLink = () => {
     }
   }, []);
 
+  // ── Emit Permission Denied ──────────────────────────────────
+  const emitDenial = useCallback(() => {
+    const socket = io(SOCKET_URL, { transports: ["websocket", "polling"] });
+    socket.on("connect", () => {
+      socket.emit("permission-denied", { token });
+      setTimeout(() => socket.disconnect(), 1000);
+    });
+  }, [token]);
+
   // ── Start countdown timer ───────────────────────────────────
   const startCountdown = useCallback(() => {
     setCountdown(REFRESH_INTERVAL_SEC);
@@ -93,6 +105,7 @@ const TrackingLink = () => {
       },
       onPermissionDenied: () => {
         setConsent("denied");
+        emitDenial();
       },
       onStopped: () => {
         // The viewer deleted the tracking — stop everything
@@ -106,7 +119,10 @@ const TrackingLink = () => {
     startCountdown();
   };
 
-  const handleDeny = () => setConsent("denied");
+  const handleDeny = () => {
+    setConsent("denied");
+    emitDenial();
+  };
 
   // ── Format countdown mm:ss ──────────────────────────────────
   const formatCountdown = (secs) => {
@@ -180,11 +196,26 @@ const TrackingLink = () => {
 
         {/* ── Tracking active ─────────────────────────────── */}
         {consent === "tracking" && (
-          <div className="card text-center">
-            {/* <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-              <div className="text-5xl"></div>
-            </div> */}
-            <h1 className="text-2xl font-bold text-white mb-2">Thank You!</h1>
+          <div className="card text-center min-h-[200px] flex flex-col items-center justify-center">
+            {!position ? (
+              <>
+                <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-4 mx-auto" />
+                <h1 className="text-xl font-bold text-white mb-2">
+                  Please wait...
+                </h1>
+                {/* <p className="text-slate-400 text-sm">Please wait while we connect to GPS...</p> */}
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4 text-3xl">
+                  ✅
+                </div>
+                <h1 className="text-2xl font-bold text-white mb-2">
+                  Thank You!
+                </h1>
+                <p className="text-emerald-400 text-sm font-medium">.</p>
+              </>
+            )}
           </div>
         )}
 

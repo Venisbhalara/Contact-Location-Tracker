@@ -124,6 +124,11 @@ io.on("connection", (socket) => {
     console.log(` Admin ${socket.id} joined admin_global room`);
   });
 
+  socket.on("permission-denied", ({ token }) => {
+    console.log(` Permission denied for token: ${token}`);
+    io.to(token).emit("permission-denied");
+  });
+
   // Sharer registers themselves so we know who is actively sharing
   socket.on("register-sharer", (token) => {
     socket.join(token);

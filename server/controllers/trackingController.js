@@ -6,7 +6,7 @@ const { Op } = require("sequelize");
 // ─── @route   POST /api/tracking/create ──────────────────────
 // ─── @desc    Generate a new tracking link with a unique token
 // ─── @access  Private
-const createTracking = async (req, res) => {
+  const createTracking = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res

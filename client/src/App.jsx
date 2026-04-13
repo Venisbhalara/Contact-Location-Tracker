@@ -27,6 +27,7 @@ import Navbar         from './components/Navbar'
 import Footer         from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminProtectedRoute from './components/AdminProtectedRoute'
+import ScrollToTop from './components/ScrollToTop'
 
 // ── Lightweight inline fallback ───────────────────────────────────────────────
 const PageLoader = () => (
@@ -62,6 +63,7 @@ function App() {
   if (isTrackingRoute) {
     return (
       <MinimalLayout>
+        <ScrollToTop />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/track/:token" element={<TrackingLink />} />
@@ -74,6 +76,7 @@ function App() {
   // Otherwise, use the main layout with navbar and footer
   return (
     <MainLayout>
+      <ScrollToTop />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public */}

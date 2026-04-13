@@ -11,7 +11,6 @@ const Footer = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-
           {/* Brand column */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
@@ -23,7 +22,8 @@ const Footer = () => {
               </span>
             </div>
             <p className="text-slate-500 text-sm leading-relaxed mb-5">
-              Real-time, consent-based location sharing for families, friends, and teams. No app download required.
+              Real-time, consent-based location sharing for families, friends,
+              and teams. No app download required.
             </p>
             <div className="inline-flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full px-3 py-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -33,13 +33,14 @@ const Footer = () => {
 
           {/* Product links */}
           <div>
-            <h4 className="text-white text-sm font-semibold mb-4 uppercase tracking-widest">Product</h4>
+            <h4 className="text-white text-sm font-semibold mb-4 uppercase tracking-widest">
+              Product
+            </h4>
             <ul className="space-y-3">
               {[
                 { label: "Home", to: "/" },
                 { label: "Dashboard", to: "/dashboard" },
                 { label: "Create Tracking Link", to: "/tracking/create" },
-                { label: "Contacts", to: "/contacts" },
               ].map((l) => (
                 <li key={l.label}>
                   <Link
@@ -56,7 +57,9 @@ const Footer = () => {
 
           {/* Company links */}
           <div>
-            <h4 className="text-white text-sm font-semibold mb-4 uppercase tracking-widest">Company</h4>
+            <h4 className="text-white text-sm font-semibold mb-4 uppercase tracking-widest">
+              Company
+            </h4>
             <ul className="space-y-3">
               {[
                 { label: "About Us", to: "/about" },
@@ -77,7 +80,9 @@ const Footer = () => {
 
           {/* Legal links */}
           <div>
-            <h4 className="text-white text-sm font-semibold mb-4 uppercase tracking-widest">Legal</h4>
+            <h4 className="text-white text-sm font-semibold mb-4 uppercase tracking-widest">
+              Legal
+            </h4>
             <ul className="space-y-3">
               {[
                 { label: "Privacy Policy", to: "/privacy-policy" },
@@ -98,7 +103,9 @@ const Footer = () => {
             <div className="mt-6 border border-indigo-500/20 bg-indigo-500/5 rounded-xl p-3">
               <p className="text-xs text-slate-500 leading-relaxed">
                 🔒 We only access your location{" "}
-                <span className="text-indigo-400 font-medium">with your explicit permission.</span>{" "}
+                <span className="text-indigo-400 font-medium">
+                  with your explicit permission.
+                </span>{" "}
                 You are always in control.
               </p>
             </div>
@@ -108,14 +115,21 @@ const Footer = () => {
         {/* Bottom bar */}
         <div className="mt-12 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-slate-600 text-xs text-center sm:text-left">
-            © {year} Location Tracker. All rights reserved. Built with privacy in mind.
+            © {year} Location Tracker. All rights reserved. Built with privacy
+            in mind.
           </p>
           <div className="flex items-center gap-5">
-            <Link to="/privacy-policy" className="text-slate-600 hover:text-slate-400 text-xs transition-colors">
+            <Link
+              to="/privacy-policy"
+              className="text-slate-600 hover:text-slate-400 text-xs transition-colors"
+            >
               Privacy Policy
             </Link>
             <span className="text-slate-800">·</span>
-            <Link to="/terms" className="text-slate-600 hover:text-slate-400 text-xs transition-colors">
+            <Link
+              to="/terms"
+              className="text-slate-600 hover:text-slate-400 text-xs transition-colors"
+            >
               Terms & Conditions
             </Link>
           </div>

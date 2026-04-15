@@ -94,7 +94,7 @@ app.set("io", io);
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
-
+app.use("/api/users", require("./routes/users")); // New profile routes
 app.use("/api/tracking", require("./routes/tracking"));
 app.use("/api/access", require("./routes/access"));
 app.use("/api/admin", require("./routes/admin"));

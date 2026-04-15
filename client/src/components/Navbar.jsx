@@ -61,8 +61,20 @@ const Navbar = () => {
                     </span>
                   </NavLink>
                 )}
-                <div className="flex items-center gap-3 ml-4 pl-4 border-l border-slate-700">
-                  <span className="text-sm text-slate-400">Hi, {user?.name?.split(' ')[0]}</span>
+                <div className="flex items-center gap-4 ml-4 pl-4 border-l border-slate-700">
+                  <NavLink
+                    to="/profile"
+                    className={({ isActive }) =>
+                      `flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm transition-all shadow-lg ${
+                        isActive
+                          ? "bg-indigo-500 text-white ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900"
+                          : "bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white"
+                      }`
+                    }
+                    title="View Profile"
+                  >
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </NavLink>
                   <button onClick={handleLogout} className="btn-danger text-sm px-4 py-2">Logout</button>
                 </div>
               </>
@@ -113,8 +125,10 @@ const Navbar = () => {
                   </span>
                 </NavLink>
               )}
-              <div className="pt-3 border-t border-slate-800">
-                <p className="text-sm text-slate-400 mb-3">Logged in as {user?.name}</p>
+              <div className="pt-3 border-t border-slate-800 flex flex-col gap-3">
+                <NavLink to="/profile" className={navClass} onClick={() => setMenuOpen(false)}>
+                   My Profile
+                </NavLink>
                 <button onClick={handleLogout} className="btn-danger w-full text-sm py-2">Logout</button>
               </div>
             </>

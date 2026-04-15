@@ -1,0 +1,4 @@
+229699082198-93oobggps7pvka5lt2ju58otkspr7a8a.apps.googleusercontent.com
+
+google authentication client id for location tracker
+react web client - 

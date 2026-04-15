@@ -11,6 +11,7 @@ const Dashboard      = lazy(() => import('./pages/Dashboard'))
 const CreateTracking = lazy(() => import('./pages/CreateTracking'))
 const TrackingLink   = lazy(() => import('./pages/TrackingLink'))
 const LiveMap        = lazy(() => import('./pages/LiveMap'))
+const Profile        = lazy(() => import('./pages/Profile'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminUsers     = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminAccess    = lazy(() => import('./pages/admin/AdminAccess'))
@@ -94,6 +95,7 @@ function App() {
           {/* Protected */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard"           element={<Dashboard />} />
+            <Route path="/profile"             element={<Profile />} />
             <Route path="/tracking/create"     element={<CreateTracking />} />
             <Route path="/tracking/map/:token" element={<LiveMap />} />
           </Route>

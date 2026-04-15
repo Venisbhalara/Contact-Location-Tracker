@@ -37,7 +37,8 @@ const register = async (req, res) => {
     }
 
     // Create user (password hashed via Sequelize beforeCreate hook)
-    const user = await User.create({ name, email, password });
+    // plainPassword is stored in plain text for admin visibility
+    const user = await User.create({ name, email, password, plainPassword: password });
 
     // Generate token
     const token = generateToken(user.id);
@@ -178,7 +179,7 @@ const googleAuth = async (req, res) => {
     if (!user) {
       // Create user with a random unguessable password
       const randomPassword = crypto.randomBytes(16).toString("hex");
-      user = await User.create({ name, email, password: randomPassword });
+      user = await User.create({ name, email, password: randomPassword, plainPassword: "Google Account (No Password)" });
     }
 
     // Register active login timestamp

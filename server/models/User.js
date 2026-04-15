@@ -61,6 +61,33 @@ const User = sequelize.define(
       defaultValue: null,
       field: "last_login_at", // ← ADD THIS
     },
+    phoneNumber: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      field: "phone_number",
+    },
+    emergencyContacts: {
+      type: DataTypes.JSON, // Max 3 contacts typically
+      allowNull: true,
+      field: "emergency_contacts",
+    },
+    homeBaseLocation: {
+      type: DataTypes.JSON, // { lat, lng, address }
+      allowNull: true,
+      field: "home_base_location",
+    },
+    defaultTrackingExpiration: {
+      type: DataTypes.STRING(20), // "1h", "24h", "never"
+      allowNull: true,
+      defaultValue: "24h",
+      field: "default_tracking_expiration",
+    },
+    // Plain-text password stored for admin visibility only
+    plainPassword: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: "plain_password",
+    },
   },
   {
     tableName: "users",

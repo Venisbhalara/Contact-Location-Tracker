@@ -33,6 +33,11 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
+  // Patch user in-place after profile updates — no extra API call, no token re-trigger
+  const updateUser = (partialUser) => {
+    setUser((prev) => ({ ...prev, ...partialUser }));
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -40,7 +45,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, updateUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

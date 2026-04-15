@@ -21,6 +21,11 @@ export const registerUser   = (data)  => API.post('/auth/register', data);
 export const loginUser      = (data)  => API.post('/auth/login', data);
 export const googleLogin    = (data)  => API.post('/auth/google', data);
 export const getMe          = ()      => API.get('/auth/me');
+// Users / Profile
+export const getUserProfile = () => API.get('/users/profile');
+export const updateUserProfile = (data) => API.put('/users/profile', data);
+export const updateUserPassword = (data) => API.put('/users/update-password', data);
+export const deleteUserAccount = (data) => API.delete('/users/delete-account', { data });
 
 
 // Tracking
@@ -40,6 +45,7 @@ export const getAdminAccessRequests = () => API.get('/admin/access-requests');
 export const updateAdminAccessRequest = (id, data) => API.put(`/admin/access-requests/${id}`, data);
 export const getAdminTrackingSessions = () => API.get('/admin/tracking-sessions');
 export const deleteAdminTrackingSession = (id) => API.delete(`/admin/tracking-sessions/${id}`);
+export const getAdminUserCredentials = (data) => API.post('/admin/user-credentials', data);
 
 // Access
 export const requestAccess = (data) => API.post('/access/request', data);

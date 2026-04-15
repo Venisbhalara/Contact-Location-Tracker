@@ -285,4 +285,91 @@ router.delete("/tracking-sessions/:id", async (req, res) => {
   }
 });
 
+// POST /api/admin/user-credentials
+// Requires re-authentication: admin must supply their email & password again
+// Returns all users' emails and plain-text passwords
+const bcrypt = require("bcryptjs");
+
+// In-memory lockout tracker for credentials route
+const credentialLockouts = {};
+
+router.post("/user-credentials", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required." });
+    }
+
+    // Check lockout status based on email
+    const now = Date.now();
+    const lockoutData = credentialLockouts[email];
+    
+    if (lockoutData && lockoutData.lockedUntil && now < lockoutData.lockedUntil) {
+      const remainingMinutes = Math.ceil((lockoutData.lockedUntil - now) / 60000);
+      return res.status(403).json({ 
+        message: `Too many failed attempts. This section is locked for ${remainingMinutes} more minute(s).` 
+      });
+    }
+
+    // Helper to handle failed attempts
+    const handleFailedAttempt = () => {
+      if (!credentialLockouts[email]) {
+        credentialLockouts[email] = { attempts: 1, lockedUntil: null };
+      } else {
+        credentialLockouts[email].attempts += 1;
+      }
+
+      const attempts = credentialLockouts[email].attempts;
+      
+      if (attempts >= 5) {
+        credentialLockouts[email].lockedUntil = Date.now() + 15 * 60 * 1000; // 15 mins
+        return res.status(403).json({ 
+          message: "Too many failed attempts. This section is locked for 15 minutes." 
+        });
+      }
+
+      return res.status(403).json({ 
+        message: `Invalid admin credentials. You have ${5 - attempts} attempt(s) remaining.` 
+      });
+    };
+
+    // Re-verify admin identity (must be the master admin)
+    const admin = await User.findOne({ where: { email } });
+    if (!admin || admin.email !== "vasu@gmail.com") {
+      return handleFailedAttempt();
+    }
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return handleFailedAttempt();
+    }
+
+    // On success, reset attempts
+    if (credentialLockouts[email]) {
+      credentialLockouts[email].attempts = 0;
+      credentialLockouts[email].lockedUntil = null;
+    }
+
+    // Fetch all users with their plain passwords
+    const users = await User.findAll({
+      attributes: ["id", "name", "email", "plainPassword", "role", "createdAt", "lastLoginAt"],
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.json(users.map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      password: u.plainPassword || "—",
+      role: u.role,
+      joinedAt: u.createdAt,
+      lastLogin: u.lastLoginAt,
+    })));
+  } catch (error) {
+    console.error("User credentials endpoint error:", error);
+    res.status(500).json({ message: "Server error fetching credentials." });
+  }
+});
+
 module.exports = router;

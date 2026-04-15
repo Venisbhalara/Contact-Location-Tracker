@@ -26,6 +26,18 @@ const AdminDashboard = () => {
   });
   const [remainingLockTime, setRemainingLockTime] = useState(0);
 
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    if (showCredModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showCredModal]);
+
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -297,7 +309,7 @@ const AdminDashboard = () => {
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto">
+            <div className="p-6 overflow-y-auto" data-lenis-prevent="true">
               {!credentials ? (
                 <form
                   onSubmit={handleFetchCredentials}

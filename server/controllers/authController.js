@@ -142,20 +142,35 @@ const getMe = async (req, res) => {
 // ─── @desc    Google OAuth login/register
 // ─── @access  Public
 const googleAuth = async (req, res) => {
-  const { credential } = req.body;
+  const { credential, access_token } = req.body;
   
-  if (!credential) {
-    return res.status(400).json({ message: "No Google credential provided." });
+  if (!credential && !access_token) {
+    return res.status(400).json({ message: "No Google credential or token provided." });
   }
 
   try {
-    const ticket = await oauthClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    
-    const payload = ticket.getPayload();
-    const { email, name } = payload;
+    let email, name;
+
+    if (credential) {
+      const ticket = await oauthClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      email = payload.email;
+      name = payload.name;
+    } else {
+      // Use native fetch to get user info from access_token
+      const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      if (!userInfoRes.ok) {
+        throw new Error("Failed to fetch user info from Google");
+      }
+      const data = await userInfoRes.json();
+      email = data.email;
+      name = data.name;
+    }
 
     // Check if user exists
     let user = await User.findOne({ where: { email } });

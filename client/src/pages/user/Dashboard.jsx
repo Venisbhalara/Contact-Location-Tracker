@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
-import { getUserTrackings, deleteTracking } from '../services/api'
+import { useAuth } from '../../context/AuthContext'
+import { getUserTrackings, deleteTracking } from '../../services/api'
 import toast from 'react-hot-toast'
 
 const statusBadge = (status) => {

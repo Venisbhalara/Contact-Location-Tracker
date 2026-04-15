@@ -3,32 +3,32 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { useLenis } from './hooks/useLenis'
 
 // ── Lazy-loaded pages (each becomes its own JS chunk) ────────────────────────
-const Home           = lazy(() => import('./pages/Home'))
-const Login          = lazy(() => import('./pages/Login'))
-const Register       = lazy(() => import('./pages/Register'))
-const Dashboard      = lazy(() => import('./pages/Dashboard'))
+const Home           = lazy(() => import('./pages/public/Home'))
+const Login          = lazy(() => import('./pages/auth/Login'))
+const Register       = lazy(() => import('./pages/auth/Register'))
+const Dashboard      = lazy(() => import('./pages/user/Dashboard'))
 
-const CreateTracking = lazy(() => import('./pages/CreateTracking'))
-const TrackingLink   = lazy(() => import('./pages/TrackingLink'))
-const LiveMap        = lazy(() => import('./pages/LiveMap'))
-const Profile        = lazy(() => import('./pages/Profile'))
+const CreateTracking = lazy(() => import('./pages/tracking/CreateTracking'))
+const TrackingLink   = lazy(() => import('./pages/tracking/TrackingLink'))
+const LiveMap        = lazy(() => import('./pages/tracking/LiveMap'))
+const Profile        = lazy(() => import('./pages/user/Profile'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminUsers     = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminAccess    = lazy(() => import('./pages/admin/AdminAccess'))
 const AdminTracking  = lazy(() => import('./pages/admin/AdminTracking'))
 const AdminLiveMap   = lazy(() => import('./pages/admin/AdminLiveMap'))
 const AdminSecurity  = lazy(() => import('./pages/admin/AdminSecurity'))
-const PrivacyPolicy  = lazy(() => import('./pages/PrivacyPolicy'))
-const Terms          = lazy(() => import('./pages/Terms'))
-const About          = lazy(() => import('./pages/About'))
-const Contact        = lazy(() => import('./pages/Contact'))
+const PrivacyPolicy  = lazy(() => import('./pages/legal/PrivacyPolicy'))
+const Terms          = lazy(() => import('./pages/legal/Terms'))
+const About          = lazy(() => import('./pages/public/About'))
+const Contact        = lazy(() => import('./pages/public/Contact'))
 
 // ── Components (always needed, kept eager) ────────────────────────────────────
-import Navbar         from './components/Navbar'
-import Footer         from './components/Footer'
-import ProtectedRoute from './components/ProtectedRoute'
-import AdminProtectedRoute from './components/AdminProtectedRoute'
-import ScrollToTop from './components/ScrollToTop'
+import Navbar         from './components/layout/Navbar'
+import Footer         from './components/layout/Footer'
+import ProtectedRoute from './components/auth/ProtectedRoute'
+import AdminProtectedRoute from './components/auth/AdminProtectedRoute'
+import ScrollToTop from './components/layout/ScrollToTop'
 
 // ── Lightweight inline fallback ───────────────────────────────────────────────
 const PageLoader = () => (

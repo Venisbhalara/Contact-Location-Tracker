@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { getAdminUsers, updateAdminUserAccess } from "../../services/api";
-import LoadingScreen from "../../components/LoadingScreen";
+import LoadingScreen from "../../components/common/LoadingScreen";
 
 // Helper function
 const timeAgo = (date) => {

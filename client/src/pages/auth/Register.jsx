@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { registerUser, googleLogin } from "../services/api";
+import { useAuth } from "../../context/AuthContext";
+import { registerUser, googleLogin } from "../../services/api";
 import { useGoogleLogin } from '@react-oauth/google';
 import toast from "react-hot-toast";
 

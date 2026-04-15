@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { createTracking, getAccessStatus, requestAccess } from "../services/api";
+import { createTracking, getAccessStatus, requestAccess } from "../../services/api";
 import toast from "react-hot-toast";
-import LoadingScreen from "../components/LoadingScreen";
-import useSocket from "../hooks/useSocket";
+import LoadingScreen from "../../components/common/LoadingScreen";
+import useSocket from "../../hooks/useSocket";
 
 const CreateTracking = () => {
   const navigate = useNavigate();

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import {
   getUserProfile,
   updateUserProfile,
   updateUserPassword,
   deleteUserAccount,
-} from "../services/api";
+} from "../../services/api";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 

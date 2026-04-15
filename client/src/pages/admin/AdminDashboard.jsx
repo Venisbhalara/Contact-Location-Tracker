@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getAdminDashboard, getAdminUserCredentials } from "../../services/api";
-import LoadingScreen from "../../components/LoadingScreen";
+import LoadingScreen from "../../components/common/LoadingScreen";
 import toast from "react-hot-toast";
 
 const AdminDashboard = () => {

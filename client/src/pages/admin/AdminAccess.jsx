@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { getAdminAccessRequests, updateAdminAccessRequest } from "../../services/api";
-import LoadingScreen from "../../components/LoadingScreen";
+import LoadingScreen from "../../components/common/LoadingScreen";
 
 const AdminAccess = () => {
   const [requests, setRequests] = useState([]);

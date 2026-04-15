@@ -10,7 +10,7 @@ import {
 import L from "leaflet";
 import { io } from "socket.io-client";
 import { getAdminTrackingSessions } from "../../services/api";
-import LoadingScreen from "../../components/LoadingScreen";
+import LoadingScreen from "../../components/common/LoadingScreen";
 import toast from "react-hot-toast";
 
 // Ensure correct API fallback

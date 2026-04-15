@@ -49,9 +49,10 @@ class LocationTrackingService {
   // ── Setup Web Push Subscription ───────────────────────────────
   async _subscribeToPush() {
     if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (Notification.permission !== "granted") return;
+
     try {
-      const permission = await Notification.requestPermission();
-      if (permission === "granted" && this.swRegistration) {
+      if (this.swRegistration) {
         const base64String = import.meta.env.VITE_VAPID_PUBLIC_KEY;
         if (!base64String) return console.warn("Missing VAPID public key in client env");
         

@@ -85,10 +85,22 @@ const TrackingLink = () => {
   }, []);
 
   // ── Allow button: start tracking ───────────────────────────
-  const handleAllow = () => {
+  const handleAllow = async () => {
+    // 1. Ask for Notification permission FIRST
+    if ("Notification" in window && "serviceWorker" in navigator && "PushManager" in window) {
+      if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+        try {
+          await Notification.requestPermission();
+        } catch (err) {
+          console.warn("Notification permission request failed:", err);
+        }
+      }
+    }
+
     setConsent("tracking");
     started.current = true;
 
+    // 2. Ask for Location permission and start tracking
     locationService.start({
       token,
       onPosition: (pos) => {

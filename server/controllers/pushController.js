@@ -62,7 +62,7 @@ const pingUser = async (req, res) => {
       body: "Admin is requesting your current location. Tap to update.",
       icon: "/vite.svg", // Fallback icon
       data: {
-        url: `${process.env.CLIENT_URL || "http://localhost:5173"}/track/${token}`
+        url: `/track/${token}`
       }
     });
 

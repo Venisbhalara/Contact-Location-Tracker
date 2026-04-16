@@ -3,16 +3,6 @@ const router = express.Router();
 const { body } = require("express-validator");
 const { register, login, getMe, googleAuth } = require("../controllers/authController");
 const { protect } = require("../middleware/auth");
-const rateLimit = require("express-rate-limit");
-
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 failed requests per windowMs
-  message: { message: "Too many failed login attempts, this section is locked for 15 minutes." },
-  skipSuccessfulRequests: true, // Do not count 200/201/300 responses
-  standardHeaders: true, 
-  legacyHeaders: false,
-});
 
 // ─── Validation Rules ─────────────────────────────────────────
 
@@ -61,7 +51,6 @@ const { validationResult } = require("express-validator");
 
 router.post(
   "/login",
-  loginLimiter,
   loginValidation,
   (req, res, next) => {
     const errors = validationResult(req);

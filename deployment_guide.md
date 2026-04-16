@@ -92,7 +92,7 @@ JWT_EXPIRE=7d
 CLIENT_URL=https://your-app.vercel.app
 ```
 
-6. Deploy → copy the Render URL (e.g. `https://contact-tracker.onrender.com`)
+6. Deploy → copy the Render URL (e.g. `https://contact-location-tracker.onrender.com`)
 
 ---
 
@@ -111,8 +111,8 @@ CLIENT_URL=https://your-app.vercel.app
 4. Add Environment Variables in Vercel dashboard:
 
 ```
-VITE_API_URL=https://contact-tracker.onrender.com/api
-VITE_SOCKET_URL=https://contact-tracker.onrender.com
+VITE_API_URL=https://contact-location-tracker.onrender.com/api
+VITE_SOCKET_URL=https://contact-location-tracker.onrender.com
 ```
 
 5. Deploy → your app is live! 🎉

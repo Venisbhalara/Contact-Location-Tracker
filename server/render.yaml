@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: contact-tracker-server
+    name: contact-location-tracker
     env: node
     region: oregon
     plan: free
@@ -29,6 +29,8 @@ services:
         value: 7d
       - key: CLIENT_URL
         value: https://cttracker.vercel.app
+      - key: ADMIN_URL
+        value: https://location-trackeradmin.vercel.app
       - key: ALLOW_ALL_ORIGINS
         value: false
       # RENDER_EXTERNAL_URL is automatically injected by Render for all web services.

@@ -119,6 +119,31 @@ VITE_SOCKET_URL=https://contact-location-tracker.onrender.com
 
 ---
 
+### Admin Panel — Vercel
+
+1. Push `d:\contact-tracker\admin` to a GitHub repo (or use the same repo)
+2. Go to [vercel.com](https://vercel.com) → New Project → Import repo
+3. Set these settings:
+
+| Setting | Value |
+|---------|-------|
+| Project Name | `location-tracker-admin` |
+| Root Directory | `admin` |
+| Framework Preset | Vite |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+
+4. Add Environment Variables:
+
+```
+VITE_API_URL=https://contact-location-tracker.onrender.com/api
+VITE_SOCKET_URL=https://contact-location-tracker.onrender.com
+```
+
+5. Deploy → your Admin dashboard is live! 🔐
+
+---
+
 ## 🔐 Security Checklist
 
 - [ ] Use a long random `JWT_SECRET` (min 32 chars) — never commit it

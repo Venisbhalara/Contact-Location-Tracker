@@ -11,6 +11,7 @@ const AdminAccess    = lazy(() => import('./pages/admin/AdminAccess'))
 const AdminTracking  = lazy(() => import('./pages/admin/AdminTracking'))
 const AdminLiveMap   = lazy(() => import('./pages/admin/AdminLiveMap'))
 const AdminSecurity  = lazy(() => import('./pages/admin/AdminSecurity'))
+const AdminActivity  = lazy(() => import('./pages/admin/AdminActivity'))
 
 // ── Components (always needed, kept eager) ────────────────────────────────────
 import Navbar         from './components/layout/Navbar'
@@ -62,6 +63,7 @@ function App() {
             <Route path="/admin/tracking" element={<AdminTracking />} />
             <Route path="/admin/live-map" element={<AdminLiveMap />} />
             <Route path="/admin/security" element={<AdminSecurity />} />
+            <Route path="/admin/activity" element={<AdminActivity />} />
           </Route>
 
           {/* Catch-all */}

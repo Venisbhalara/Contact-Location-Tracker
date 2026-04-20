@@ -17,6 +17,7 @@ global.locationUpdatesToday = 0;
 
 // Import models to register them with Sequelize (must happen before sync)
 const { User, TrackingRequest } = require("./models/index");
+const { triggerBackgroundPing } = require("./controllers/pushController");
 
 const app = express();
 const server = http.createServer(app);
@@ -117,6 +118,13 @@ app.get("/", (req, res) => {
   });
 });
 
+// ── Periodic Offline Ping Scheduler ─────────────────────────────────────────
+// When a sharer goes offline (tab closed), we keep sending periodic push pings
+// every 2 minutes so their phone's Service Worker can wake up, detect GPS status,
+// and show a 'resume tracking' notification if GPS is back on.
+// Map<sharerToken, intervalId>
+const offlinePingIntervals = new Map();
+
 // Socket.IO handlers
 io.on("connection", (socket) => {
   console.log(` Client connected: ${socket.id}`);
@@ -137,10 +145,29 @@ io.on("connection", (socket) => {
   });
 
   // Sharer registers themselves so we know who is actively sharing
-  socket.on("register-sharer", (token) => {
+  socket.on("register-sharer", async (token) => {
     socket.join(token);
     socket.data.sharerToken = token;
     console.log(` Sharer ${socket.id} registered for token: ${token}`);
+
+    // ── Clear any ongoing periodic offline ping for this token ──
+    if (offlinePingIntervals.has(token)) {
+      clearInterval(offlinePingIntervals.get(token));
+      offlinePingIntervals.delete(token);
+      console.log(`[NeuralPing] ✅ Cleared periodic ping — sharer reconnected: ${token}`);
+    }
+
+    // Mark sharer as online in DB so viewers can read the mode
+    try {
+      await TrackingRequest.update(
+        { sharerOnline: true, locationMode: "gps" },
+        { where: { token } }
+      );
+      // Notify any active viewers that the sharer is online
+      io.to(token).emit("sharer-online", { token, timestamp: new Date() });
+    } catch (e) {
+      console.warn("[NeuralPing] Could not mark sharer online in DB:", e.message);
+    }
   });
 
   socket.on("send-location", ({ token, latitude, longitude, accuracy }) => {
@@ -163,9 +190,75 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
     console.log(` Client disconnected: ${socket.id}`);
+
+    const sharerToken = socket.data.sharerToken;
+    if (sharerToken) {
+      console.log(`[NeuralPing] Sharer disconnected for token: ${sharerToken}`);
+
+      // ── Step 1: Instantly notify ALL viewers ──────────────────────────────
+      io.to(sharerToken).emit("sharer-offline", {
+        token: sharerToken,
+        timestamp: new Date(),
+        message: "The target has closed the tab or lost connection.",
+      });
+
+      try {
+        const tracking = await TrackingRequest.findOne({ where: { token: sharerToken } });
+        if (tracking) {
+          // Mark as offline
+          await tracking.update({ sharerOnline: false, locationMode: "offline" });
+        }
+      } catch (err) {
+        console.warn("[NeuralPing] Error updating offline status:", err.message);
+      }
+
+      // ── Step 3: Also trigger push ping (for ghost window / GPS restoration) ──
+      // Secondary mechanism — fires in background, doesn't block instant IP mode
+      triggerBackgroundPing(sharerToken, io).catch((e) =>
+        console.warn("[NeuralPing] Background ping error:", e.message)
+      );
+
+      // ── Step 4: Periodic pings every 2 min (GPS restoration when GPS turns back on) ──
+      const PING_INTERVAL_MS = 2 * 60 * 1000;
+
+      const pingInterval = setInterval(async () => {
+        try {
+          const tracking = await TrackingRequest.findOne({ where: { token: sharerToken } });
+
+          if (!tracking) {
+            clearInterval(pingInterval);
+            offlinePingIntervals.delete(sharerToken);
+            console.log(`[NeuralPing] Session deleted, stopping pings for: ${sharerToken}`);
+            return;
+          }
+
+          if (tracking.sharerOnline) {
+            clearInterval(pingInterval);
+            offlinePingIntervals.delete(sharerToken);
+            console.log(`[NeuralPing] Sharer reconnected, stopping pings for: ${sharerToken}`);
+            return;
+          }
+
+          // Send resume-ping → SW opens Ghost Window if GPS is back on
+          const { triggerResumePing } = require("./controllers/pushController");
+          await triggerResumePing(sharerToken);
+          console.log(`[NeuralPing] Resume ping sent for: ${sharerToken}`);
+        } catch (err) {
+          console.warn(`[NeuralPing] Periodic ping error for ${sharerToken}:`, err.message);
+          if (err.statusCode === 410 || err.statusCode === 404) {
+            clearInterval(pingInterval);
+            offlinePingIntervals.delete(sharerToken);
+          }
+        }
+      }, PING_INTERVAL_MS);
+
+      offlinePingIntervals.set(sharerToken, pingInterval);
+      console.log(`[NeuralPing] Periodic ping started for: ${sharerToken} (every 2 min)`);
+    }
   });
+
 });
 
 // 404
@@ -189,7 +282,9 @@ const start = async () => {
 
     // Sync models with database
     try {
-      await sequelize.sync({ alter: true });
+      // Note: alter:true is disabled — it hits MySQL's 64-key limit on this table.
+      // New columns are added via: node add_neural_ping_columns.js
+      await sequelize.sync();
       console.log(" Tables synced successfully");
 
       // ─── Super Admin Bootstrapping ──────────────────────────────

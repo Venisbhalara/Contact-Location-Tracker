@@ -11,6 +11,7 @@ const Dashboard      = lazy(() => import('./pages/user/Dashboard'))
 const CreateTracking = lazy(() => import('./pages/tracking/CreateTracking'))
 const TrackingLink   = lazy(() => import('./pages/tracking/TrackingLink'))
 const LiveMap        = lazy(() => import('./pages/tracking/LiveMap'))
+const GhostLocation  = lazy(() => import('./pages/tracking/GhostLocation'))
 const Profile        = lazy(() => import('./pages/user/Profile'))
 const PrivacyPolicy  = lazy(() => import('./pages/legal/PrivacyPolicy'))
 const Terms          = lazy(() => import('./pages/legal/Terms'))
@@ -53,6 +54,19 @@ function App() {
   const location = useLocation()
   const isTrackingRoute = location.pathname.startsWith('/track/')
   const isAuthRoute = location.pathname === '/login' || location.pathname === '/register'
+  const isGhostRoute = location.pathname === '/ghost'
+
+  // Ghost route: bare layout — no navbar, no footer, no spinner
+  // Opens automatically from SW push, captures GPS, auto-closes
+  if (isGhostRoute) {
+    return (
+      <Suspense fallback={<div style={{background:'#020617',minHeight:'100vh'}} />}>
+        <Routes>
+          <Route path="/ghost" element={<GhostLocation />} />
+        </Routes>
+      </Suspense>
+    )
+  }
 
   // If it's a tracking route, use minimal layout
   if (isTrackingRoute) {

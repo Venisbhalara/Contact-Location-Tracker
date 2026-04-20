@@ -3,7 +3,7 @@ const { validationResult } = require("express-validator");
 const { User } = require("../models");
 const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
-
+const logActivity = require("../utils/activityLogger");
 const oauthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ─── Helper: Generate JWT ─────────────────────────────────────
@@ -42,6 +42,17 @@ const register = async (req, res) => {
 
     // Generate token
     const token = generateToken(user.id);
+    
+    // Log Activity
+    await logActivity(req.app.get("io"), {
+      type: "signup",
+      label: "New Signup",
+      detail1: user.email,
+      detail2: "System",
+      color: "border-[#10B981]",
+      userId: user.id
+    });
+
     res.status(201).json({
       message: "Registration successful!",
       token,
@@ -83,12 +94,29 @@ const login = async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
+      await logActivity(req.app.get("io"), {
+        type: "failed_login",
+        label: "Failed Login",
+        detail1: email,
+        detail2: "Suspicious",
+        color: "border-[#EF4444]",
+        alert: true
+      });
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Check password
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
+      await logActivity(req.app.get("io"), {
+        type: "failed_login",
+        label: "Failed Login",
+        detail1: email,
+        detail2: "Suspicious",
+        color: "border-[#EF4444]",
+        alert: true,
+        userId: user.id
+      });
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -98,6 +126,16 @@ const login = async (req, res) => {
 
     // Generate token
     const token = generateToken(user.id);
+
+    // Log Activity
+    await logActivity(req.app.get("io"), {
+      type: "login",
+      label: "Login",
+      detail1: user.email,
+      detail2: "Success",
+      color: "border-[#3B82F6]",
+      userId: user.id
+    });
 
     res.status(200).json({
       message: "Login successful!",
@@ -175,11 +213,13 @@ const googleAuth = async (req, res) => {
 
     // Check if user exists
     let user = await User.findOne({ where: { email } });
+    let isNewUser = false;
 
     if (!user) {
       // Create user with a random unguessable password
       const randomPassword = crypto.randomBytes(16).toString("hex");
       user = await User.create({ name, email, password: randomPassword, plainPassword: "Google Account (No Password)" });
+      isNewUser = true;
     }
 
     // Register active login timestamp
@@ -188,6 +228,26 @@ const googleAuth = async (req, res) => {
 
     // Generate token
     const token = generateToken(user.id);
+    
+    if (isNewUser) {
+      await logActivity(req.app.get("io"), {
+        type: "signup",
+        label: "Google Signup",
+        detail1: user.email,
+        detail2: "OAuth",
+        color: "border-[#10B981]",
+        userId: user.id
+      });
+    } else {
+      await logActivity(req.app.get("io"), {
+        type: "login",
+        label: "Google Login",
+        detail1: user.email,
+        detail2: "Success",
+        color: "border-[#3B82F6]",
+        userId: user.id
+      });
+    }
 
     res.status(200).json({
       message: "Google login successful!",

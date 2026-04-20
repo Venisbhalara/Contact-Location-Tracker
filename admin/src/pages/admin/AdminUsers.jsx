@@ -12,6 +12,7 @@ import LoadingScreen from "../../components/common/LoadingScreen";
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userToDelete, setUserToDelete] = useState(null);
   
   // Filtering & Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,16 +58,20 @@ const AdminUsers = () => {
     }
   };
 
-  const handleDelete = async (user) => {
-    if (!window.confirm(`Are you absolutely sure you want to delete ${user.name}? This will wipe all their data and tracking history permanently.`)) {
-      return;
-    }
+  const confirmDelete = (user) => {
+    setUserToDelete(user);
+  };
+
+  const executeDelete = async () => {
+    if (!userToDelete) return;
     try {
-      await deleteAdminUser(user.id);
-      setUsers(users.filter(u => u.id !== user.id));
+      await deleteAdminUser(userToDelete.id);
+      setUsers(users.filter(u => u.id !== userToDelete.id));
       toast.success("User deleted permanently");
     } catch (err) {
       toast.error(err.response?.data?.message || "Delete failed");
+    } finally {
+      setUserToDelete(null);
     }
   };
 
@@ -190,7 +195,7 @@ const AdminUsers = () => {
                       <td className="px-6 py-4 text-right">
                         <button 
                           disabled={isMasterAdmin}
-                          onClick={() => handleDelete(u)}
+                          onClick={() => confirmDelete(u)}
                           className={`text-red-400 hover:text-red-300 transition-colors p-2 rounded-lg hover:bg-red-400/10 ${isMasterAdmin ? "opacity-50 cursor-not-allowed" : ""}`}
                           title={isMasterAdmin ? "Cannot delete master admin" : "Delete User Permanently"}
                         >
@@ -205,6 +210,44 @@ const AdminUsers = () => {
           </table>
         </div>
       </div>
+
+      {/* Delete Modal */}
+      {userToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-in fade-in duration-200">
+          <div 
+            className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" 
+            onClick={() => setUserToDelete(null)}
+          ></div>
+          <div className="relative bg-slate-900 border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-2xl max-w-md w-full transform transition-all text-center animate-in zoom-in-95 duration-200">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 mb-6 border border-red-500/20 shadow-inner shadow-red-500/20">
+              <svg className="h-8 w-8 text-red-500 opacity-90 drop-shadow-md" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Delete User Record</h3>
+            <p className="text-slate-400 mb-8 leading-relaxed text-sm">
+              Are you absolutely sure you want to delete <span className="text-red-400 font-semibold">{userToDelete.name}</span>? 
+              This action cannot be undone and will permanently erase all associated data and tracking history.
+            </p>
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 justify-center">
+              <button
+                type="button"
+                className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-2.5 rounded-xl text-sm font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-slate-500 transition-colors border border-slate-700/50"
+                onClick={() => setUserToDelete(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-red-500 transition-all shadow-lg shadow-red-500/25 border border-red-500/20"
+                onClick={executeDelete}
+              >
+                Permanently Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

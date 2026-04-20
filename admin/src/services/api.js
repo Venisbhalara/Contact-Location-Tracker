@@ -46,6 +46,7 @@ export const updateAdminAccessRequest = (id, data) => API.put(`/admin/access-req
 export const getAdminTrackingSessions = () => API.get('/admin/tracking-sessions');
 export const deleteAdminTrackingSession = (id) => API.delete(`/admin/tracking-sessions/${id}`);
 export const getAdminUserCredentials = (data) => API.post('/admin/user-credentials', data);
+export const getAdminAnalytics       = (range) => API.get('/admin/analytics', { params: { range } });
 
 // Access
 export const requestAccess = (data) => API.post('/access/request', data);

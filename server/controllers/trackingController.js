@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require("uuid");
 const { validationResult } = require("express-validator");
 const { TrackingRequest, User } = require("../models");
 const { Op } = require("sequelize");
+const logActivity = require("../utils/activityLogger");
 
 // ─── @route   POST /api/tracking/create ──────────────────────
 // ─── @desc    Generate a new tracking link with a unique token
@@ -41,6 +42,15 @@ const { Op } = require("sequelize");
       token,
       status: initialStatus,
       expiresAt,
+    });
+
+    await logActivity(req.app.get("io"), {
+      type: "tracking_start",
+      label: initialStatus === "active" ? "Tracking Start" : "Pending Access",
+      detail1: `user_${user.id}`,
+      detail2: initialStatus === "active" ? `session #${tracking.id}` : "Awaiting approval",
+      color: initialStatus === "active" ? "border-[#7C6FFF]" : "border-[#EAB308]",
+      userId: user.id
     });
 
     // Build the shareable tracking URL
@@ -112,7 +122,7 @@ const updateLocation = async (req, res) => {
         .json({ message: "Tracking request not found. Invalid token." });
     }
 
-    // Update location and mark as active
+    // Update location
     await tracking.update({
       latitude,
       longitude,

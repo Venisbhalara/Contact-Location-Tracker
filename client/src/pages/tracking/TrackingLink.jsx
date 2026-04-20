@@ -23,6 +23,7 @@ const TrackingLink = () => {
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL_SEC); // seconds until next refresh
   const started = useRef(false);
   const countdownRef = useRef(null);
+  const handleAllowRef = useRef(null); // Ref so auto-resume can call handleAllow
 
   // ── Load tracking info ──────────────────────────────────────
   useEffect(() => {
@@ -86,6 +87,7 @@ const TrackingLink = () => {
 
   // ── Allow button: start tracking ───────────────────────────
   const handleAllow = async () => {
+    // Keep ref in sync so auto-resume effect can call it
     // 1. Ask for Notification permission FIRST
     if ("Notification" in window && "serviceWorker" in navigator && "PushManager" in window) {
       if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -130,6 +132,54 @@ const TrackingLink = () => {
     // Start the visual countdown
     startCountdown();
   };
+
+  // ── Auto-Resume: triggered when page opens with ?resume=1 ── 
+  // When the user taps the "Resume Location Sharing" push notification,
+  // the tracking page opens with ?resume=1. If GPS permission was already
+  // granted, we auto-start tracking WITHOUT requiring user to tap Allow again.
+  useEffect(() => {
+    // Update the ref whenever handleAllow changes
+    handleAllowRef.current = handleAllow;
+  });
+
+  useEffect(() => {
+    if (!tracking) return; // Wait until tracking data is loaded
+    if (consent !== "idle") return; // Don't auto-start if already tracking/denied
+    if (started.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const shouldResume = params.get("resume") === "1";
+    if (!shouldResume) return;
+
+    console.log("[TrackingLink] ?resume=1 detected — checking GPS permission...");
+
+    const attemptAutoResume = async () => {
+      // Check if GPS permission is already granted (no prompt needed)
+      if (navigator.permissions) {
+        try {
+          const result = await navigator.permissions.query({ name: "geolocation" });
+          if (result.state === "granted") {
+            console.log("[TrackingLink] GPS already granted — auto-starting tracking!");
+            // Small delay so the UI renders first
+            await new Promise((r) => setTimeout(r, 500));
+            handleAllowRef.current?.();
+            return;
+          }
+          console.log("[TrackingLink] GPS permission state:", result.state, "— cannot auto-resume");
+        } catch (err) {
+          console.warn("[TrackingLink] Permission query failed:", err.message);
+          // Fallback: just try starting — browser will prompt if needed
+          handleAllowRef.current?.();
+        }
+      } else {
+        // permissions API not supported — try starting anyway
+        handleAllowRef.current?.();
+      }
+    };
+
+    attemptAutoResume();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tracking, consent]);
 
   const handleDeny = () => {
     setConsent("denied");

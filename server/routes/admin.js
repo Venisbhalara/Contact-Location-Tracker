@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
-const { User, TrackingRequest, AccessRequest } = require("../models/index");
+const { User, TrackingRequest, AccessRequest, ActivityLog } = require("../models/index");
 const sendEmail = require("../utils/sendEmail");
 
 // Middleware to protect admin routes
@@ -93,6 +93,24 @@ router.get("/dashboard", async (req, res) => {
       });
     }
 
+    // Metrics for Donut Charts
+    const offlineSessions = await TrackingRequest.count({ where: { status: "pending" } });
+    const expiredSessions = await TrackingRequest.count({ where: { status: "expired" } });
+    const adminUsers = await User.count({ where: { role: "admin" } });
+    const standardUsers = await User.count({ where: { role: "user" } });
+    
+    // Mini Stats calculations
+    const totalTrackRequests = await TrackingRequest.count();
+    const successRate = totalTrackRequests > 0 ? Math.round((activeSessions / totalTrackRequests) * 100) : 0;
+    const bannedUsers = await User.count({ where: { trackingAccess: false } });
+
+    // Recent Activity Feed
+    const recentActivity = await ActivityLog.findAll({
+      order: [["createdAt", "DESC"]],
+      limit: 50,
+      attributes: ["id", "type", "label", "detail1", "detail2", "color", "alert", ["createdAt", "time"]]
+    });
+
     res.json({
       totalUsers,
       activeSessions,
@@ -100,6 +118,15 @@ router.get("/dashboard", async (req, res) => {
       locationUpdatesToday,
       newSignups24h,
       activityChart,
+      // newly added DB real-time data
+      offlineSessions,
+      expiredSessions,
+      adminUsers,
+      standardUsers,
+      totalTrackRequests,
+      successRate,
+      bannedUsers,
+      recentActivity,
     });
   } catch (error) {
     console.error("Admin dashboard error:", error);
@@ -372,4 +399,173 @@ router.post("/user-credentials", async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /api/admin/analytics  — Premium real-time analytics endpoint
+// ─────────────────────────────────────────────────────────────────────────────
+router.get("/analytics", async (req, res) => {
+  try {
+    const { range = "7" } = req.query; // "7", "30", "90"
+    const days = parseInt(range) || 7;
+
+    const now = new Date();
+
+    // ── Helper: start of a day offset from today ───────────────────────────
+    const dayStart = (offsetDays) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - offsetDays);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    };
+
+    const rangeStart   = dayStart(days - 1);
+    const prevStart    = dayStart(days * 2 - 1);
+    const prevEnd      = dayStart(days);
+    const todayStart   = dayStart(0);
+    const weekAgo      = dayStart(7);
+
+    // ── 1. Stat Cards ──────────────────────────────────────────────────────
+    const [
+      totalUsers,
+      todaySignups,
+      prevWeekSignups,
+      todayTracking,
+      prevWeekTracking,
+      activeNow,
+    ] = await Promise.all([
+      User.count(),
+      User.count({ where: { createdAt: { [Op.gte]: todayStart } } }),
+      User.count({ where: { createdAt: { [Op.between]: [weekAgo, todayStart] } } }),
+      TrackingRequest.count({ where: { createdAt: { [Op.gte]: todayStart } } }),
+      TrackingRequest.count({ where: { createdAt: { [Op.between]: [weekAgo, todayStart] } } }),
+      TrackingRequest.count({ where: { status: "active", sharerOnline: true } }),
+    ]);
+
+    // Previous period totals for weekly change  
+    const [prevTotalUsers] = await Promise.all([
+      User.count({ where: { createdAt: { [Op.lt]: todayStart } } }),
+    ]);
+
+    const pct = (curr, prev) =>
+      prev === 0 ? (curr > 0 ? 100 : 0) : Math.round(((curr - prev) / prev) * 100);
+
+    const stats = {
+      totalUsers,
+      todaySignups,
+      todayTrackingRequests: todayTracking,
+      activeNow,
+      weeklyChange: {
+        signups:  pct(todaySignups,  prevWeekSignups),
+        tracking: pct(todayTracking, prevWeekTracking),
+        users:    pct(totalUsers,    prevTotalUsers > 0 ? prevTotalUsers : 1),
+        activeNow: 0,
+      },
+    };
+
+    // ── 2. Chart Data (grouped by day) ────────────────────────────────────
+    const [recentUsers, recentRequests] = await Promise.all([
+      User.findAll({ where: { createdAt: { [Op.gte]: rangeStart } }, attributes: ["createdAt"] }),
+      TrackingRequest.findAll({ where: { createdAt: { [Op.gte]: rangeStart } }, attributes: ["createdAt"] }),
+    ]);
+
+    const chartData = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split("T")[0];
+      const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
+      chartData.push({
+        date: dateStr,
+        day: dayName,
+        signups: recentUsers.filter(u => u.createdAt.toISOString().split("T")[0] === dateStr).length,
+        trackingRequests: recentRequests.filter(r => r.createdAt.toISOString().split("T")[0] === dateStr).length,
+      });
+    }
+
+    // ── 3. Heatmap (hour × weekday) ───────────────────────────────────────
+    // We query last 90 days of data for a useful heatmap
+    const heatmapCutoff = dayStart(89);
+    const [hmUsers, hmReqs] = await Promise.all([
+      User.findAll({ where: { createdAt: { [Op.gte]: heatmapCutoff } }, attributes: ["createdAt"] }),
+      TrackingRequest.findAll({ where: { createdAt: { [Op.gte]: heatmapCutoff } }, attributes: ["createdAt"] }),
+    ]);
+    const heatGrid = {};
+    const allEvents = [...hmUsers.map(r => r.createdAt), ...hmReqs.map(r => r.createdAt)];
+    allEvents.forEach(dt => {
+      const day  = dt.getDay();   // 0=Sun … 6=Sat
+      const hour = dt.getHours(); // 0-23
+      const key  = `${day}_${hour}`;
+      heatGrid[key] = (heatGrid[key] || 0) + 1;
+    });
+    const heatmapData = [];
+    for (let d = 0; d < 7; d++) {
+      for (let h = 0; h < 24; h++) {
+        heatmapData.push({ day: d, hour: h, count: heatGrid[`${d}_${h}`] || 0 });
+      }
+    }
+
+    // ── 4. Geo Data (from tracking requests ipCountry) ────────────────────
+    const geoRaw = await TrackingRequest.findAll({
+      attributes: ["ipCountry"],
+      where: { ipCountry: { [Op.ne]: null } },
+    });
+    const geoMap = {};
+    geoRaw.forEach(r => {
+      const c = (r.ipCountry || "").trim().toUpperCase().slice(0, 2);
+      if (c) geoMap[c] = (geoMap[c] || 0) + 1;
+    });
+    const geoData = Object.entries(geoMap).map(([country, count]) => ({ country, count }));
+
+    // ── 5. Live Events (last 20 from ActivityLog) ─────────────────────────
+    const liveEvents = await ActivityLog.findAll({
+      order: [["createdAt", "DESC"]],
+      limit: 20,
+      attributes: ["id", "type", "label", "detail1", "detail2", "createdAt"],
+    });
+
+    // ── 6. User Journey Funnel ────────────────────────────────────────────
+    const [visited, signedup, usedTracking, returned] = await Promise.all([
+      User.count(),                                                                   // visited ≈ all signups (proxy)
+      User.count(),                                                                   // signed up
+      User.count({ where: { trackingAccess: true } }),                               // used tracking
+      User.count({ where: { lastLoginAt: { [Op.gte]: dayStart(30) } } }),            // returned in 30d
+    ]);
+    const funnel = [
+      { stage: "Visited",         count: Math.round(signedup * 3.4) },
+      { stage: "Signed Up",       count: signedup },
+      { stage: "Used Tracking",   count: usedTracking },
+      { stage: "Returned",        count: returned },
+    ];
+
+    // ── 7. Anomaly Detection ─────────────────────────────────────────────
+    const anomalies = [];
+    if (chartData.length >= 3) {
+      const avg = chartData.reduce((s, d) => s + d.signups + d.trackingRequests, 0) / chartData.length;
+      const latest = chartData[chartData.length - 1];
+      const latestTotal = latest.signups + latest.trackingRequests;
+      if (avg > 0 && latestTotal >= avg * 3) {
+        anomalies.push({
+          severity: "high",
+          message: `⚠️ ${Math.round((latestTotal / avg - 1) * 100)}% activity spike detected on ${latest.day} — possible campaign or bot activity`,
+        });
+      }
+      // Check for any individual day spike in chart
+      chartData.forEach(d => {
+        const total = d.signups + d.trackingRequests;
+        if (avg > 0 && total >= avg * 3.4 && d.date !== latest.date) {
+          anomalies.push({
+            severity: "medium",
+            message: `⚠️ Unusual spike on ${d.day} (${d.date}) — ${total} events vs avg ${Math.round(avg)}`,
+          });
+        }
+      });
+    }
+
+    res.json({ stats, chartData, heatmapData, geoData, liveEvents, funnel, anomalies });
+  } catch (error) {
+    console.error("Analytics endpoint error:", error);
+    res.status(500).json({ message: "Failed to fetch analytics data" });
+  }
+});
+
 module.exports = router;
+

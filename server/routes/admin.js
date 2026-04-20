@@ -134,6 +134,111 @@ router.get("/dashboard", async (req, res) => {
   }
 });
 
+// GET /api/admin/analytics
+router.get("/analytics", async (req, res) => {
+  try {
+    const rangedays = Math.min(Math.max(parseInt(req.query.range) || 7, 1), 365);
+    const now = new Date();
+
+    // ── Date helpers ─────────────────────────────────────────────────────────
+    const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); d.setHours(0,0,0,0); return d; };
+    const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+    const rangeStart = daysAgo(rangedays);
+    const lastWeekStart = daysAgo(rangedays * 2);
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
+    const totalUsers            = await User.count();
+    const todaySignups          = await User.count({ where: { createdAt: { [Op.gte]: startOfToday } } });
+    const todayTrackingRequests = await TrackingRequest.count({ where: { createdAt: { [Op.gte]: startOfToday } } });
+    const activeNow             = await TrackingRequest.count({ where: { status: "active" } });
+
+    // Weekly change (compare current period vs prior period)
+    const curUsers   = await User.count({ where: { createdAt: { [Op.gte]: daysAgo(7) } } });
+    const prevUsers  = await User.count({ where: { createdAt: { [Op.between]: [daysAgo(14), daysAgo(7)] } } });
+    const curSigns   = await User.count({ where: { createdAt: { [Op.gte]: daysAgo(7) } } });
+    const prevSigns  = await User.count({ where: { createdAt: { [Op.between]: [daysAgo(14), daysAgo(7)] } } });
+    const curTrack   = await TrackingRequest.count({ where: { createdAt: { [Op.gte]: daysAgo(7) } } });
+    const prevTrack  = await TrackingRequest.count({ where: { createdAt: { [Op.between]: [daysAgo(14), daysAgo(7)] } } });
+    const pct = (c, p) => p > 0 ? Math.round(((c - p) / p) * 100) : (c > 0 ? 100 : 0);
+
+    const stats = {
+      totalUsers,
+      todaySignups,
+      todayTrackingRequests,
+      activeNow,
+      weeklyChange: {
+        users:     pct(curUsers,  prevUsers),
+        signups:   pct(curSigns,  prevSigns),
+        tracking:  pct(curTrack,  prevTrack),
+        activeNow: 0,
+      },
+    };
+
+    // ── Chart data (per-day signups + tracking requests) ──────────────────────
+    const [periodUsers, periodTracking] = await Promise.all([
+      User.findAll({ where: { createdAt: { [Op.gte]: rangeStart } }, attributes: ["createdAt"] }),
+      TrackingRequest.findAll({ where: { createdAt: { [Op.gte]: rangeStart } }, attributes: ["createdAt"] }),
+    ]);
+
+    const chartData = [];
+    for (let i = rangedays - 1; i >= 0; i--) {
+      const d    = new Date(); d.setDate(d.getDate() - i); d.setHours(0,0,0,0);
+      const ds   = d.toISOString().split("T")[0];
+      const day  = d.toLocaleDateString("en-US", { weekday: "short" });
+      const signups = periodUsers.filter(u => u.createdAt.toISOString().split("T")[0] === ds).length;
+      const trackingRequests = periodTracking.filter(t => t.createdAt.toISOString().split("T")[0] === ds).length;
+      chartData.push({ date: ds, day, signups, trackingRequests });
+    }
+
+    // ── Geo data (from ipCountry field on tracking_requests) ──────────────────
+    const geoRaw = await TrackingRequest.findAll({
+      attributes: ["ipCountry"],
+      where: { ipCountry: { [Op.not]: null } },
+    });
+    const geoCounts = {};
+    geoRaw.forEach(r => {
+      const c = r.ipCountry?.toUpperCase();
+      if (c) geoCounts[c] = (geoCounts[c] || 0) + 1;
+    });
+    const geoData = Object.entries(geoCounts)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20);
+
+    // ── Funnel ────────────────────────────────────────────────────────────────
+    const totalSignups = await User.count();
+    const requested    = await User.count({ where: { accessStatus: { [Op.in]: ["pending", "approved", "revoked"] } } });
+    const approved     = await User.count({ where: { trackingAccess: true } });
+    const activated    = await TrackingRequest.count({ where: { status: { [Op.in]: ["active", "completed"] } } });
+    const funnel = [
+      { stage: "Registered",      count: totalSignups },
+      { stage: "Access Requested", count: requested },
+      { stage: "Approved",         count: approved },
+      { stage: "Used Tracking",    count: activated },
+    ];
+
+    // ── Anomalies ─────────────────────────────────────────────────────────────
+    const anomalies = [];
+    const failedLogins = await ActivityLog.count({
+      where: { type: "failed_login", createdAt: { [Op.gte]: daysAgo(1) } },
+    }).catch(() => 0);
+    if (failedLogins >= 10) anomalies.push({ message: `⚠️ ${failedLogins} failed login attempts in the last 24 hours` });
+    if (activeNow > 50) anomalies.push({ message: `📡 High load: ${activeNow} active sessions right now` });
+
+    // ── Live events (last 50 activity log entries) ────────────────────────────
+    const liveEvents = await ActivityLog.findAll({
+      order: [["createdAt", "DESC"]],
+      limit: 50,
+      attributes: ["id", "type", "label", "detail1", "detail2", "color", "alert", "createdAt"],
+    });
+
+    res.json({ stats, chartData, geoData, funnel, anomalies, liveEvents });
+  } catch (error) {
+    console.error("Admin analytics error:", error);
+    res.status(500).json({ message: "Failed to load analytics data" });
+  }
+});
+
 // GET /api/admin/users
 router.get("/users", async (req, res) => {
   try {

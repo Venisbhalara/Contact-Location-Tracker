@@ -33,5 +33,13 @@ services:
         value: https://location-trackeradmin.vercel.app
       - key: ALLOW_ALL_ORIGINS
         value: false
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_EMAIL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       # RENDER_EXTERNAL_URL is automatically injected by Render for all web services.
       # The keep-alive pinger in server.js uses it — no manual configuration needed.

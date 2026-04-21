@@ -36,6 +36,7 @@ const ActivityLog = sequelize.define("ActivityLog", {
   userId: {
     type: DataTypes.INTEGER,
     allowNull: true,
+    field: "user_id",
   }
 });
 

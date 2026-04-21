@@ -10,7 +10,7 @@ export default defineConfig({
 
   server: {
     host: true,   // ← exposes to local network (needed for phone access)
-    port: 3000,
+    port: 5174,   // ← matches package.json --port 5174
     proxy: {
       '/api': {
         target: 'http://localhost:5005',

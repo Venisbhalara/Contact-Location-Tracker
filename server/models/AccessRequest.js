@@ -17,6 +17,7 @@ const AccessRequest = sequelize.define(
         key: "id",
       },
       onDelete: "CASCADE",
+      field: "user_id",
     },
     reason: {
       type: DataTypes.TEXT,
@@ -30,6 +31,7 @@ const AccessRequest = sequelize.define(
     rejectionReason: {
       type: DataTypes.TEXT,
       allowNull: true, // only populated if rejected
+      field: "rejection_reason",
     },
   },
   {

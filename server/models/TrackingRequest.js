@@ -17,6 +17,7 @@ const TrackingRequest = sequelize.define(
         key: "id",
       },
       onDelete: "CASCADE",
+      field: "user_id",
     },
     phoneNumber: {
       type: DataTypes.STRING(20),
@@ -24,11 +25,13 @@ const TrackingRequest = sequelize.define(
       validate: {
         notEmpty: { msg: "Phone number is required" },
       },
+      field: "phone_number",
     },
     trackingType: {
       type: DataTypes.ENUM("location"),
       allowNull: false,
       defaultValue: "location",
+      field: "tracking_type",
     },
     token: {
       type: DataTypes.STRING(255),

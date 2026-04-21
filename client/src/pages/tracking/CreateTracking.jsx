@@ -60,6 +60,39 @@ const CreateTracking = () => {
     checkAccess();
   }, []);
 
+  // Poll for status updates when request is pending
+  useEffect(() => {
+    let intervalId = null;
+
+    if (access?.latestRequest?.status === "pending" && !access?.trackingAccess) {
+      intervalId = setInterval(async () => {
+        try {
+          const res = await getAccessStatus();
+          // If approved
+          if (res.data.trackingAccess) {
+            setAccess(res.data);
+            toast.success("Admin approved your request! Access granted.", {
+              id: "approval-success",
+              duration: 5000,
+            });
+            clearInterval(intervalId);
+          } 
+          // If rejected
+          else if (res.data.latestRequest?.status === "rejected") {
+            setAccess(res.data);
+            clearInterval(intervalId);
+          }
+        } catch (err) {
+          console.error("Polling error:", err);
+        }
+      }, 5000); // Check every 5 seconds
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [access?.latestRequest?.status, access?.trackingAccess]);
+
   const handleRequestSubmit = async (e) => {
     e.preventDefault();
     try {

@@ -3,24 +3,29 @@ import BackButton from "../../components/common/BackButton";
 import toast from "react-hot-toast";
 import { getAdminAccessRequests, updateAdminAccessRequest } from "../../services/api";
 import LoadingScreen from "../../components/common/LoadingScreen";
+import { RefreshCw } from "lucide-react";
 
 const AdminAccess = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [filter, setFilter] = useState("all"); // 'all', 'pending', 'approved', 'rejected'
   
   // Rejection Modal State
   const [rejecting, setRejecting] = useState(null); // stores the request object to reject
   const [rejectionReason, setRejectionReason] = useState("");
 
-  const fetchRequests = async () => {
+  const fetchRequests = async (showToast = false) => {
+    if (showToast) setIsRefreshing(true);
     try {
       const res = await getAdminAccessRequests();
       setRequests(res.data);
+      if (showToast) toast.success("Queue updated successfully");
     } catch (err) {
       toast.error("Failed to load access requests queue.");
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -76,13 +81,13 @@ const AdminAccess = () => {
         <p className="text-slate-400 mt-2">Manage the gateway restricting user tracking link generation capabilities.</p>
       </div>
 
-      <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl p-4 mb-8 flex justify-between items-center shadow-sm">
-        <div className="flex bg-slate-800 p-1 rounded-lg">
+      <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl p-4 mb-8 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-sm">
+        <div className="flex bg-slate-800 p-1 rounded-lg w-full sm:w-auto overflow-x-auto">
           {["all", "pending", "approved", "rejected"].map(state => (
             <button
               key={state}
               onClick={() => setFilter(state)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${filter === state ? 'bg-indigo-500 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${filter === state ? 'bg-indigo-500 text-white shadow' : 'text-slate-400 hover:text-white'}`}
             >
               {state.charAt(0).toUpperCase() + state.slice(1)}
               {state === "pending" && requests.some(r => r.status === "pending") && (
@@ -93,6 +98,18 @@ const AdminAccess = () => {
             </button>
           ))}
         </div>
+
+        <button
+          onClick={() => fetchRequests(true)}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed group border border-white/10 w-full sm:w-auto justify-center"
+        >
+          <RefreshCw
+            size={16}
+            className={isRefreshing ? "animate-spin text-indigo-400" : "text-slate-400 group-hover:text-white transition-colors"}
+          />
+          {isRefreshing ? "Refreshing..." : "Refresh Queue"}
+        </button>
       </div>
 
       {filteredRequests.length === 0 ? (

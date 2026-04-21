@@ -61,64 +61,76 @@ const TrackingRequest = sequelize.define(
       type: DataTypes.ENUM("gps", "ip", "offline"),
       allowNull: false,
       defaultValue: "offline",
+      field: "location_mode",
     },
     // sharerOnline: true when the sharer's socket is connected
     sharerOnline: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: false,
+      field: "sharer_online",
     },
     // IP-based fallback location (approximate, from mobile internet)
     ipLatitude: {
       type: DataTypes.DECIMAL(11, 8),
       allowNull: true,
       defaultValue: null,
+      field: "ip_latitude",
     },
     ipLongitude: {
       type: DataTypes.DECIMAL(12, 8),
       allowNull: true,
       defaultValue: null,
+      field: "ip_longitude",
     },
     ipCity: {
       type: DataTypes.STRING(100),
       allowNull: true,
       defaultValue: null,
+      field: "ip_city",
     },
     ipRegion: {
       type: DataTypes.STRING(100),
       allowNull: true,
       defaultValue: null,
+      field: "ip_region",
     },
     ipCountry: {
       type: DataTypes.STRING(100),
       allowNull: true,
       defaultValue: null,
+      field: "ip_country",
     },
     ipIsp: {
       type: DataTypes.STRING(255),
       allowNull: true,
       defaultValue: null,
+      field: "ip_isp",
     },
     // Timestamp of the last successful IP-based location fetch
     lastIpUpdatedAt: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: null,
+      field: "last_ip_updated_at",
     },
     expiresAt: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: null,
+      field: "expires_at",
     },
     lastUpdatedAt: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: null,
+      field: "last_updated_at",
     },
     pushSubscription: {
       type: DataTypes.JSON,
       allowNull: true,
       defaultValue: null,
+      field: "push_subscription",
     },
     // lastKnownIp: the sharer's real IP from their last location update call.
     // Captured passively on every REST POST to /api/tracking/update-location.
@@ -127,6 +139,7 @@ const TrackingRequest = sequelize.define(
       type: DataTypes.STRING(64),
       allowNull: true,
       defaultValue: null,
+      field: "last_known_ip",
     },
   },
   {

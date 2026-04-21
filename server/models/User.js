@@ -47,19 +47,19 @@ const User = sequelize.define(
       type: DataTypes.STRING(20),
       allowNull: true,
       defaultValue: "approved",
-      field: "access_status", // ← ADD THIS
+      field: "access_status",
     },
     trackingAccess: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
       defaultValue: false,
-      field: "tracking_access", // ← ADD THIS
+      field: "tracking_access",
     },
     lastLoginAt: {
       type: DataTypes.DATE,
       allowNull: true,
       defaultValue: null,
-      field: "last_login_at", // ← ADD THIS
+      field: "last_login_at",
     },
     phoneNumber: {
       type: DataTypes.STRING(20),

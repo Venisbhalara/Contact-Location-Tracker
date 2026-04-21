@@ -72,26 +72,24 @@ const TopBarClock = memo(() => {
   }, []);
 
   const formattedDate = useMemo(() => {
-    return new Intl.DateTimeFormat("en-US", {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    }).format(currentTime) +
-    " — " +
-    new Intl.DateTimeFormat("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).format(currentTime);
+    return (
+      new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }).format(currentTime) +
+      " — " +
+      new Intl.DateTimeFormat("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).format(currentTime)
+    );
   }, [currentTime]);
 
-  return (
-    <p className="text-sm font-mono text-[#64748B]/80">
-      {formattedDate}
-    </p>
-  );
+  return <p className="text-sm font-mono text-[#64748B]/80">{formattedDate}</p>;
 });
 
 const AdminDashboard = () => {
@@ -308,9 +306,15 @@ const AdminDashboard = () => {
             >
               <RefreshCw
                 size={16}
-                className={isRefreshing ? "animate-spin text-[#7C6FFF]" : "text-[#64748B] group-hover:text-white transition-colors"}
+                className={
+                  isRefreshing
+                    ? "animate-spin text-[#7C6FFF]"
+                    : "text-[#64748B] group-hover:text-white transition-colors"
+                }
               />
-              <span className="hidden sm:inline">{isRefreshing ? "Refreshing" : "Refresh"}</span>
+              <span className="hidden sm:inline">
+                {isRefreshing ? "Refreshing" : "Refresh"}
+              </span>
             </button>
           </div>
         </motion.div>
@@ -788,7 +792,7 @@ const AdminDashboard = () => {
                         {lockoutTime
                           ? "LOCKED OUT"
                           : credLoading
-                            ? "DECRYPTING..."
+                            ? "CHECKING..."
                             : "AUTHORIZE ACCESS"}
                       </button>
                     </div>
@@ -891,150 +895,145 @@ const AdminDashboard = () => {
 
 // --- Sub Components ---
 
-const StatCard = memo(({
-  title,
-  value,
-  icon: Icon,
-  color,
-  tooltip,
-  glow,
-  pulse,
-  badgeText,
-  spark,
-}) => (
-  <motion.div
-    variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
-    whileHover={{ y: -4 }}
-    className="relative glass-card p-5 group transition-all duration-300 overflow-hidden"
-    style={{
-      borderTop: `2px solid ${color}`,
-      boxShadow: glow ? `0 0 20px ${color}33` : "none",
-    }}
-  >
-    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
-      <Icon size={100} color={color} />
-    </div>
-
-    <div className="flex justify-between items-start mb-4 relative z-10">
-      <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center border transition-colors duration-300"
-        style={{
-          backgroundColor: `${color}15`,
-          borderColor: `${color}30`,
-          color: color,
-        }}
-      >
-        <Icon size={20} />
+const StatCard = memo(
+  ({
+    title,
+    value,
+    icon: Icon,
+    color,
+    tooltip,
+    glow,
+    pulse,
+    badgeText,
+    spark,
+  }) => (
+    <motion.div
+      variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+      whileHover={{ y: -4 }}
+      className="relative glass-card p-5 group transition-all duration-300 overflow-hidden"
+      style={{
+        borderTop: `2px solid ${color}`,
+        boxShadow: glow ? `0 0 20px ${color}33` : "none",
+      }}
+    >
+      <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none transform translate-x-4 -translate-y-4 group-hover:scale-110 transition-transform duration-500">
+        <Icon size={100} color={color} />
       </div>
-      {badgeText && (
-        <span
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold tracking-wider border"
+
+      <div className="flex justify-between items-start mb-4 relative z-10">
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center border transition-colors duration-300"
           style={{
             backgroundColor: `${color}15`,
             borderColor: `${color}30`,
             color: color,
           }}
         >
-          {pulse && (
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ backgroundColor: color }}
-            ></span>
-          )}
-          {badgeText}
-        </span>
-      )}
-    </div>
-
-    <div className="relative z-10">
-      <h3 className="text-white text-3xl font-black tracking-tight mb-1">
-        <AnimatedCounter value={value} />
-      </h3>
-      <div className="flex items-center gap-2">
-        <p className="text-sm font-medium text-[#64748B] truncate">{title}</p>
-        <div className="text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-white/50 truncate max-w-[80px]">
-          {tooltip}
+          <Icon size={20} />
         </div>
-      </div>
-    </div>
-  </motion.div>
-));
-
-const ActionCard = memo(({
-  to,
-  onClick,
-  icon: Icon,
-  title,
-  desc,
-  color,
-  badge,
-  pulseBadge,
-}) => {
-  const content = (
-    <div
-      className="glass-card p-5 flex items-center gap-4 group cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-2xl"
-      style={{ "--hover-color": color }}
-    >
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-r from-transparent to-[var(--hover-color)] pointer-events-none"></div>
-
-      <div
-        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-300 group-hover:scale-110"
-        style={{
-          backgroundColor: `${color}15`,
-          borderColor: `${color}30`,
-          color: color,
-          boxShadow: `0 0 20px ${color}20`,
-        }}
-      >
-        <Icon size={24} />
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <h4 className="text-base font-bold text-white truncate group-hover:text-[var(--hover-color)] transition-colors">
-          {title}
-        </h4>
-        <p className="text-xs text-[#64748B] truncate mt-0.5">{desc}</p>
-      </div>
-
-      <div className="shrink-0 flex items-center gap-3">
-        {badge && (
+        {badgeText && (
           <span
-            className="px-2 py-1 rounded-md text-[10px] font-bold tracking-wider border flex items-center gap-1.5"
+            className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold tracking-wider border"
             style={{
               backgroundColor: `${color}15`,
               borderColor: `${color}30`,
               color: color,
             }}
           >
-            {pulseBadge && (
+            {pulse && (
               <span
                 className="w-1.5 h-1.5 rounded-full animate-pulse"
                 style={{ backgroundColor: color }}
               ></span>
             )}
-            {badge}
+            {badgeText}
           </span>
         )}
-        <ChevronRight
-          className="text-[#64748B] group-hover:text-white group-hover:translate-x-1 transition-all"
-          size={20}
-        />
       </div>
-    </div>
-  );
 
-  return to ? (
-    <Link
-      to={to}
-      className="block w-full outline-none focus:ring-2 focus:ring-[#7C6FFF] rounded-xl"
-    >
-      {content}
-    </Link>
-  ) : (
-    <div onClick={onClick} className="w-full relative">
-      {content}
-    </div>
-  );
-});
+      <div className="relative z-10">
+        <h3 className="text-white text-3xl font-black tracking-tight mb-1">
+          <AnimatedCounter value={value} />
+        </h3>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-[#64748B] truncate">{title}</p>
+          <div className="text-[10px] bg-white/5 px-1.5 py-0.5 rounded text-white/50 truncate max-w-[80px]">
+            {tooltip}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  ),
+);
+
+const ActionCard = memo(
+  ({ to, onClick, icon: Icon, title, desc, color, badge, pulseBadge }) => {
+    const content = (
+      <div
+        className="glass-card p-5 flex items-center gap-4 group cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-2xl"
+        style={{ "--hover-color": color }}
+      >
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-r from-transparent to-[var(--hover-color)] pointer-events-none"></div>
+
+        <div
+          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-300 group-hover:scale-110"
+          style={{
+            backgroundColor: `${color}15`,
+            borderColor: `${color}30`,
+            color: color,
+            boxShadow: `0 0 20px ${color}20`,
+          }}
+        >
+          <Icon size={24} />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h4 className="text-base font-bold text-white truncate group-hover:text-[var(--hover-color)] transition-colors">
+            {title}
+          </h4>
+          <p className="text-xs text-[#64748B] truncate mt-0.5">{desc}</p>
+        </div>
+
+        <div className="shrink-0 flex items-center gap-3">
+          {badge && (
+            <span
+              className="px-2 py-1 rounded-md text-[10px] font-bold tracking-wider border flex items-center gap-1.5"
+              style={{
+                backgroundColor: `${color}15`,
+                borderColor: `${color}30`,
+                color: color,
+              }}
+            >
+              {pulseBadge && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full animate-pulse"
+                  style={{ backgroundColor: color }}
+                ></span>
+              )}
+              {badge}
+            </span>
+          )}
+          <ChevronRight
+            className="text-[#64748B] group-hover:text-white group-hover:translate-x-1 transition-all"
+            size={20}
+          />
+        </div>
+      </div>
+    );
+
+    return to ? (
+      <Link
+        to={to}
+        className="block w-full outline-none focus:ring-2 focus:ring-[#7C6FFF] rounded-xl"
+      >
+        {content}
+      </Link>
+    ) : (
+      <div onClick={onClick} className="w-full relative">
+        {content}
+      </div>
+    );
+  },
+);
 
 export default AdminDashboard;

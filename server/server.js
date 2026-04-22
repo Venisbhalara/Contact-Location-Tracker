@@ -313,106 +313,98 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
+// ── Startup Diagnostics ─────────────────────────────────────────────────────
+function printStartupDiagnostics() {
+  console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("  LOCATION TRACKER — STARTUP DIAGNOSTICS");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  const c = (k, v) => console.log(`  ${k.padEnd(22)}: ${v}`);
+  c("NODE_ENV",            process.env.NODE_ENV             || "❌ NOT SET");
+  c("PORT",                PORT);
+  c("DB_HOST",             process.env.DB_HOST              || "❌ NOT SET");
+  c("DB_PORT",             process.env.DB_PORT              || "❌ NOT SET");
+  c("DB_NAME",             process.env.DB_NAME              || "❌ NOT SET");
+  c("DB_USER",             process.env.DB_USER              || "❌ NOT SET");
+  c("DB_PASSWORD",         process.env.DB_PASSWORD          ? `✅ SET (${process.env.DB_PASSWORD.length} chars)` : "❌ NOT SET");
+  c("JWT_SECRET",          process.env.JWT_SECRET           ? `✅ SET (${process.env.JWT_SECRET.length} chars)` : "❌ NOT SET");
+  c("CLIENT_URL",          process.env.CLIENT_URL           || "⚠️  NOT SET");
+  c("ADMIN_URL",           process.env.ADMIN_URL            || "⚠️  NOT SET");
+  c("RENDER_EXTERNAL_URL", process.env.RENDER_EXTERNAL_URL  || "⚠️  NOT SET");
+  c("SUPER_ADMIN_EMAIL",   process.env.SUPER_ADMIN_EMAIL    || "vasu@gmail.com (default)");
+  c("VAPID_PUBLIC_KEY",    process.env.VAPID_PUBLIC_KEY     ? "✅ SET" : "⚠️  NOT SET");
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+}
+
 // Connect to MySQL then start server
 const start = async () => {
+  printStartupDiagnostics();
   try {
+    // 1. DB Connection
+    console.log("⏳ Connecting to MySQL...");
     await sequelize.authenticate();
-    console.log(" MySQL Connected.");
+    console.log("✅ MySQL Connected.\n");
 
-    // Run automatic database repair/migration
+    // 2. Schema repair
+    console.log("⏳ Running schema migration...");
     await runMigrations();
 
-    // Sync models with database
+    // 3. Sync models — creates tables if they don't exist
+    console.log("⏳ Syncing models to DB...");
     try {
-      // Note: alter:true is disabled — it hits MySQL's 64-key limit on this table.
-      // New columns are added via: node add_neural_ping_columns.js
       await sequelize.sync();
-      console.log(" Tables synced successfully");
-
-      // ─── Super Admin Bootstrapping ──────────────────────────────
-      // Automatically ensure an admin user exists on startup
-      const adminEmail = process.env.SUPER_ADMIN_EMAIL || "vasu@gmail.com";
-      const adminPass = process.env.SUPER_ADMIN_PASSWORD || "123456";
-
-      const [admin, created] = await User.findOrCreate({
-        where: { email: adminEmail },
-        defaults: {
-          name: "Administrator",
-          password: adminPass,
-          plainPassword: adminPass,
-          role: "admin",
-          accessStatus: "approved",
-          trackingAccess: true,
-        },
-      });
-
-      if (!created) {
-        // If user already exists, ensure they have the admin role and correct password
-        let changed = false;
-        if (admin.role !== "admin") {
-          admin.role = "admin";
-          changed = true;
-        }
-        // If you specifically want to reset the password on every restart if it differs
-        // (Optional: removes manual DB changes if they forgot the password)
-        if (process.env.RESET_ADMIN_ON_START === "true") {
-          admin.password = adminPass;
-          admin.plainPassword = adminPass;
-          changed = true;
-        }
-
-        if (changed) {
-          await admin.save();
-          console.log(` Admin permissions/password updated for ${adminEmail}`);
-        }
-      } else {
-        console.log(` Created new Super Admin account: ${adminEmail}`);
+      console.log("✅ Tables synced.");
+      // Verify critical tables
+      for (const t of ["users","tracking_requests","access_requests","activity_logs"]) {
+        const [rows] = await sequelize.query(`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='${t}'`).catch(()=>[[]]);
+        console.log(`  ${rows.length ? "✅" : "❌"} Table '${t}' ${rows.length ? "exists" : "MISSING"}`);
       }
+
     } catch (syncErr) {
-      console.error(" SYNC FAILED:", syncErr.message);
-      console.error(" SQL:", syncErr.original?.sqlMessage);
+      console.error("❌ SYNC FAILED:", syncErr.message);
+      console.error("   SQL:", syncErr.original?.sqlMessage);
     }
 
-    // Bind to 0.0.0.0 so the server is reachable from phones on the same Wi-Fi
+    // 4. Admin bootstrapping
+    try {
+      const adminEmail = process.env.SUPER_ADMIN_EMAIL || "vasu@gmail.com";
+      const adminPass  = process.env.SUPER_ADMIN_PASSWORD || "123456";
+      const [admin, created] = await User.findOrCreate({
+        where: { email: adminEmail },
+        defaults: { name:"Administrator", password:adminPass, plainPassword:adminPass, role:"admin", accessStatus:"approved", trackingAccess:true },
+      });
+      if (!created) {
+        let changed = false;
+        if (admin.role !== "admin") { admin.role="admin"; admin.trackingAccess=true; admin.accessStatus="approved"; changed=true; }
+        if (process.env.RESET_ADMIN_ON_START === "true") { admin.password=adminPass; admin.plainPassword=adminPass; changed=true; }
+        if (changed) await admin.save();
+      }
+      console.log(`✅ Admin ${created?"created":"verified"}: ${adminEmail}`);
+    } catch (adminErr) {
+      console.error("❌ Admin bootstrap failed (non-fatal):", adminErr.message);
+    }
+
+    // 5. Start listening
     server.listen(PORT, "0.0.0.0", () => {
-      console.log(`\n Server running at http://localhost:${PORT}`);
-      console.log(` Network access: http://10.126.122.217:${PORT}`);
-      console.log(
-        ` Database: ${process.env.DB_NAME}@${process.env.DB_HOST}:${process.env.DB_PORT}`,
-      );
-      console.log(` Socket.IO ready`);
+      console.log(`\n🚀 Server live at http://localhost:${PORT}`);
+      console.log(`   DB     : ${process.env.DB_NAME}@${process.env.DB_HOST}:${process.env.DB_PORT}`);
+      console.log(`   Health : http://localhost:${PORT}/api/health\n`);
 
-      // ── Keep-alive pinger (Render free tier) ──────────────────────────
-      // Render spins down free instances after ~15 min of inactivity.
-      // We self-ping every 14 min so the server never goes to sleep.
-      if (
-        process.env.NODE_ENV === "production" &&
-        process.env.RENDER_EXTERNAL_URL
-      ) {
+      // Keep-alive pinger for Render free tier
+      if (process.env.NODE_ENV === "production" && process.env.RENDER_EXTERNAL_URL) {
         const pingUrl = process.env.RENDER_EXTERNAL_URL;
-        const PING_INTERVAL_MS = 14 * 60 * 1000; // 14 minutes
-
         setInterval(() => {
-          const protocol = pingUrl.startsWith("https")
-            ? require("https")
-            : require("http");
-          protocol
-            .get(pingUrl, (res) => {
-              console.log(` Keep-alive ping → ${res.statusCode}`);
-            })
-            .on("error", (err) => {
-              console.error(" Keep-alive ping failed:", err.message);
-            });
-        }, PING_INTERVAL_MS);
-
-        console.log(` Keep-alive pinger active (every 14 min) → ${pingUrl}`);
+          const proto = pingUrl.startsWith("https") ? require("https") : require("http");
+          proto.get(pingUrl, (r) => console.log(`  Keep-alive → ${r.statusCode}`))
+               .on("error", (e) => console.error("  Keep-alive failed:", e.message));
+        }, 14 * 60 * 1000);
+        console.log(`  Keep-alive active → ${pingUrl}`);
       }
     });
   } catch (err) {
-    console.error(" Failed to start server:", err);
-    console.error(
-      "\n Check your .env database credentials and make sure MySQL is running.\n",
-    );
+    console.error("\n❌ FATAL: Server failed to start");
+    console.error("   Error:", err.message);
+    console.error("   SQL  :", err.original?.sqlMessage || "N/A");
+    console.error("   → Ensure DB_HOST, DB_PASSWORD, JWT_SECRET are set in Render dashboard\n");
     process.exit(1);
   }
 };

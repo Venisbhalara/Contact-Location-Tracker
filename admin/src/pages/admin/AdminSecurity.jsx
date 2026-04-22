@@ -138,7 +138,7 @@ const AdminSecurity = () => {
               {admins.map(admin => (
                 <div key={admin.id} className="flex items-center gap-4 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
                   <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-lg border border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
-                    {admin.name.charAt(0).toUpperCase()}
+                    {admin.name ? admin.name.charAt(0).toUpperCase() : (admin.email === 'vasu@gmail.com' ? 'V' : (admin.email.charAt(0).toUpperCase()))}
                   </div>
                   <div>
                     <p className="text-white font-semibold text-sm leading-tight">{admin.name}</p>

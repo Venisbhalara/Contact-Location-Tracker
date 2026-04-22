@@ -61,7 +61,7 @@ const Navbar = () => {
                     className="flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm bg-indigo-500 text-white shadow-lg"
                     title="View Profile"
                   >
-                    {user?.name?.charAt(0).toUpperCase() || 'A'}
+                    {user?.name ? user.name.charAt(0).toUpperCase() : (user?.email === 'vasu@gmail.com' ? 'V' : (user?.email?.charAt(0).toUpperCase() || 'U'))}
                   </div>
                   <button onClick={handleLogout} className="btn-danger text-sm px-4 py-2">Logout</button>
                 </div>

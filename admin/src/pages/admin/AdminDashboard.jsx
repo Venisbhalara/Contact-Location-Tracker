@@ -849,7 +849,7 @@ const AdminDashboard = () => {
                               >
                                 <td className="px-5 py-4 font-medium text-white flex items-center gap-3">
                                   <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-xs font-bold text-white group-hover:bg-[#7C6FFF]/20 group-hover:text-[#7C6FFF] transition-colors border border-white/10">
-                                    {user.name.charAt(0).toUpperCase()}
+                                    {user.name ? user.name.charAt(0).toUpperCase() : (user.email.charAt(0).toUpperCase())}
                                   </div>
                                   {user.name}
                                 </td>

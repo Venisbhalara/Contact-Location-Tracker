@@ -9,6 +9,7 @@ const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminUsers     = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminAccess    = lazy(() => import('./pages/admin/AdminAccess'))
 const AdminTracking  = lazy(() => import('./pages/admin/AdminTracking'))
+const AdminMapDetail = lazy(() => import('./pages/admin/AdminMapDetail'))
 const AdminLiveMap   = lazy(() => import('./pages/admin/AdminLiveMap'))
 const AdminSecurity  = lazy(() => import('./pages/admin/AdminSecurity'))
 const AdminActivity  = lazy(() => import('./pages/admin/AdminActivity'))
@@ -61,6 +62,7 @@ function App() {
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/access" element={<AdminAccess />} />
             <Route path="/admin/tracking" element={<AdminTracking />} />
+            <Route path="/admin/tracking/map/:token" element={<AdminMapDetail />} />
             <Route path="/admin/live-map" element={<AdminLiveMap />} />
             <Route path="/admin/security" element={<AdminSecurity />} />
             <Route path="/admin/activity" element={<AdminActivity />} />

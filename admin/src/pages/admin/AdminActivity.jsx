@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo, Component } from "react";
+import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { io } from "socket.io-client";
@@ -235,8 +236,8 @@ const AdminActivity = () => {
   const socketRef = useRef(null);
 
   // ── Fetch analytics ────────────────────────────────────────────────────────
-  const fetchData = useCallback(async (r) => {
-    setLoading(true);
+  const fetchData = useCallback(async (r, isAuto = false) => {
+    if (!isAuto) setLoading(true);
     try {
       const res = await getAdminAnalytics(r);
       setData(res.data);
@@ -246,6 +247,7 @@ const AdminActivity = () => {
           time: e.createdAt || e.time,
         }))
       );
+      if (isAuto) toast.success("Activity report updated", { id: 'activity-refresh', duration: 2000, position: 'top-right' });
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load analytics");
     } finally {
@@ -253,7 +255,16 @@ const AdminActivity = () => {
     }
   }, []);
 
-  useEffect(() => { fetchData(range); }, [range, fetchData]);
+  useEffect(() => { 
+    fetchData(range); 
+    
+    // Auto-refresh every 10 seconds in background
+    const interval = setInterval(() => {
+      fetchData(range, true);
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, [range, fetchData]);
 
   // ── Socket live feed ───────────────────────────────────────────────────────
   useEffect(() => {

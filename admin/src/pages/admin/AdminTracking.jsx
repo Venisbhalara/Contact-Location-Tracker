@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import BackButton from "../../components/common/BackButton";
 import toast from "react-hot-toast";
 import { getAdminTrackingSessions, deleteAdminTrackingSession } from "../../services/api";
+import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../../components/common/LoadingScreen";
 
 // Helper function to calculate human-readable time elapsed
@@ -25,11 +26,14 @@ const AdminTracking = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // 'all', 'active', 'pending'
+  const navigate = useNavigate();
   
-  const fetchSessions = async () => {
+  const fetchSessions = async (isAuto = false) => {
+    if (!isAuto) setLoading(true);
     try {
       const res = await getAdminTrackingSessions();
       setSessions(res.data);
+      if (isAuto) toast.success("Live sessions updated", { id: 'tracking-refresh', duration: 2000, position: 'top-right' });
     } catch (err) {
       toast.error("Failed to fetch tracking sessions.");
     } finally {
@@ -40,9 +44,9 @@ const AdminTracking = () => {
   useEffect(() => {
     fetchSessions();
     
-    // Poll every 10 seconds to keep updated location times fresh
+    // Poll every 10 seconds to keep updated location times fresh in background
     const interval = setInterval(() => {
-      fetchSessions();
+      fetchSessions(true);
     }, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -61,7 +65,7 @@ const AdminTracking = () => {
   };
 
   const openMap = (token) => {
-    window.open(`/tracking/map/${token}`, "_blank", "noopener,noreferrer");
+    navigate(`/admin/tracking/map/${token}`);
   };
 
   if (loading) return <LoadingScreen />;

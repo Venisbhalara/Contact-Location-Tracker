@@ -129,32 +129,38 @@ const AdminDashboard = () => {
     };
   }, [showCredModal]);
 
-  const fetchDashboard = async (showToast = false) => {
-    if (showToast) {
-      setIsRefreshing(true);
-    } else {
-      setLoading(true);
+  const fetchDashboard = async (showToast = false, isAuto = false) => {
+    if (!isAuto) {
+      if (showToast) {
+        setIsRefreshing(true);
+      } else {
+        setLoading(true);
+      }
     }
     setError(null);
     try {
       const res = await getAdminDashboard();
       setData(res.data);
       setActivities(res.data.recentActivity || []);
-      if (showToast) toast.success("Dashboard refreshed successfully");
+      if (showToast || isAuto) toast.success("Dashboard refreshed", { id: 'dashboard-refresh', duration: 2000, position: 'top-right' });
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load admin data");
       if (showToast) toast.error("Failed to refresh dashboard");
     } finally {
-      if (showToast) {
-        setIsRefreshing(false);
-      } else {
-        setLoading(false);
-      }
+      setIsRefreshing(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchDashboard();
+    
+    // Auto-refresh every 10 seconds in background
+    const interval = setInterval(() => {
+      fetchDashboard(false, true); 
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Socket.IO for Live Activity

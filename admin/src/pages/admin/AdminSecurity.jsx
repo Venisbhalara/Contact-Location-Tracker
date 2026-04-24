@@ -83,13 +83,13 @@ const AdminSecurity = () => {
     .sort((a, b) => new Date(b.lastLoginAt) - new Date(a.lastLoginAt)); // Newest first
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <BackButton />
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white border-l-4 border-red-500 pl-3">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-white border-l-4 border-red-500 pl-3">
           Security & Settings
         </h1>
-        <p className="text-slate-400 mt-2">Audit administrative layers, track logins, and execute global user bans.</p>
+        <p className="text-slate-400 mt-1 text-sm">Audit administrative layers, track logins, and execute global user bans.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -98,12 +98,12 @@ const AdminSecurity = () => {
         <div className="lg:col-span-1 flex flex-col gap-8">
           
           {/* Ban Hammer Box */}
-          <div className="bg-slate-900 border border-red-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div className="bg-slate-900 border border-red-500/30 rounded-2xl p-4 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-orange-500"></div>
-            <h2 className="text-xl font-bold flex items-center gap-2 text-white mb-2">
-              <span className="text-2xl">🔨</span> Rapid Threat Control
+            <h2 className="text-lg font-bold flex items-center gap-2 text-white mb-1.5">
+              <span className="text-xl">🔨</span> Rapid Threat Control
             </h2>
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+            <p className="text-xs text-slate-400 mb-4 leading-relaxed">
               Identify a compromised or malicious email account to instantly sever their global access to the entire platform.
             </p>
 
@@ -113,7 +113,7 @@ const AdminSecurity = () => {
                 <input
                   type="email"
                   required
-                  className="input w-full bg-slate-950 border-slate-800 text-red-200 focus:border-red-500 focus:ring-red-500"
+                  className="input w-full bg-slate-950 border-slate-800 text-red-200 focus:border-red-500 focus:ring-red-500 text-sm"
                   placeholder="suspect@target.com"
                   value={blockEmail}
                   onChange={(e) => setBlockEmail(e.target.value)}
@@ -122,7 +122,7 @@ const AdminSecurity = () => {
               <button 
                 type="submit" 
                 disabled={blockLoading || !blockEmail}
-                className="btn-primary w-full bg-red-600 hover:bg-red-500 focus:ring-red-500/50 uppercase tracking-widest text-sm py-3 mt-2 shadow-[0_0_20px_rgba(220,38,38,0.2)]"
+                className="btn-primary w-full bg-red-600 hover:bg-red-500 focus:ring-red-500/50 uppercase tracking-widest text-xs py-2 mt-1.5 shadow-[0_0_20px_rgba(220,38,38,0.2)]"
               >
                 {blockLoading ? "Executing..." : "Execute Global Block"}
               </button>
@@ -130,14 +130,14 @@ const AdminSecurity = () => {
           </div>
 
           {/* Admin Roster */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <h2 className="text-xl font-bold flex items-center gap-2 text-white mb-6">
-              <span className="text-2xl">🛡️</span> Administrator Roster
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-white mb-4">
+              <span className="text-xl">🛡️</span> Administrator Roster
             </h2>
             <div className="flex flex-col gap-4">
               {admins.map(admin => (
-                <div key={admin.id} className="flex items-center gap-4 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-                  <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-lg border border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
+                <div key={admin.id} className="flex items-center gap-3 bg-slate-800/50 p-2.5 rounded-xl border border-slate-700/50">
+                  <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-base border border-indigo-500/30 shadow-[0_0_10px_rgba(99,102,241,0.2)]">
                     {admin.name ? admin.name.charAt(0).toUpperCase() : (admin.email === 'vasu@gmail.com' ? 'V' : (admin.email.charAt(0).toUpperCase()))}
                   </div>
                   <div>
@@ -156,13 +156,13 @@ const AdminSecurity = () => {
 
         {/* RIGHT COLUMN: Login Audit Log */}
         <div className="lg:col-span-2">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl h-full flex flex-col">
-            <div className="flex justify-between items-end mb-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl h-full flex flex-col">
+            <div className="flex justify-between items-end mb-4">
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2 text-white mb-2">
-                  <span className="text-2xl">📋</span> Global Login Diagnostics
+                <h2 className="text-lg font-bold flex items-center gap-2 text-white mb-1">
+                  <span className="text-xl">📋</span> Global Login Diagnostics
                 </h2>
-                <p className="text-sm text-slate-400">Chronological timestamp matrix of latest verified entry points.</p>
+                <p className="text-xs text-slate-400">Chronological timestamp matrix of latest verified entry points.</p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-indigo-400">{loginAuditLog.length}</p>
@@ -173,10 +173,10 @@ const AdminSecurity = () => {
             <div className="flex-1 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/50">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-900 sticky top-0 z-10">
-                  <tr className="border-b border-slate-800 text-slate-400 text-xs uppercase tracking-wider font-semibold">
-                    <th className="px-6 py-4">Identity</th>
-                    <th className="px-6 py-4">Status & Role</th>
-                    <th className="px-6 py-4 text-right">Entry Timestamp</th>
+                  <tr className="border-b border-slate-800 text-slate-400 text-[10px] uppercase tracking-wider font-semibold">
+                    <th className="px-4 py-3">Identity</th>
+                    <th className="px-4 py-3">Status & Role</th>
+                    <th className="px-4 py-3 text-right">Entry Timestamp</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800">
@@ -189,19 +189,19 @@ const AdminSecurity = () => {
                   ) : (
                     loginAuditLog.map((user) => (
                       <tr key={user.id} className="hover:bg-slate-800/30 transition-colors">
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-3">
                           <p className="text-white font-medium text-sm">{user.name}</p>
-                          <p className="text-slate-500 font-mono text-xs">{user.email}</p>
+                          <p className="text-slate-500 font-mono text-[11px]">{user.email}</p>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                             <span className={`h-2.5 w-2.5 rounded-full ${user.accessStatus === 'revoked' ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
-                             <span className="text-sm text-slate-300 capitalize">{user.role}</span>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5">
+                             <span className={`h-2 w-2 rounded-full ${user.accessStatus === 'revoked' ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                             <span className="text-xs text-slate-300 capitalize">{user.role}</span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <p className="text-sm text-indigo-300 font-medium">{timeAgo(user.lastLoginAt)}</p>
-                          <p className="text-xs text-slate-600 mt-1">{new Date(user.lastLoginAt).toLocaleString()}</p>
+                        <td className="px-4 py-3 text-right">
+                          <p className="text-xs text-indigo-300 font-medium">{timeAgo(user.lastLoginAt)}</p>
+                          <p className="text-[10px] text-slate-600 mt-0.5">{new Date(user.lastLoginAt).toLocaleString()}</p>
                         </td>
                       </tr>
                     ))

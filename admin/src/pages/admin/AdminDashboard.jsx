@@ -275,43 +275,43 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-[#080d1a] selection:bg-[#7C6FFF]/30">
-      <div className="max-w-[1400px] mx-auto px-4 w-full sm:px-6 lg:px-8 py-8 md:py-12 space-y-8">
+      <div className="max-w-[1300px] mx-auto px-4 w-full sm:px-6 lg:px-8 py-4 md:py-6 space-y-5">
         {/* === HEADER === */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
+          className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4"
         >
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-1.5 h-8 bg-[#7C6FFF] rounded-full"></div>
-              <h1 className="text-3xl md:text-4xl font-bold text-[#F1F5F9] tracking-tight">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-1 h-6 bg-[#7C6FFF] rounded-full"></div>
+              <h1 className="text-2xl md:text-3xl font-bold text-[#F1F5F9] tracking-tight">
                 Admin Dashboard
               </h1>
             </div>
-            <p className="text-[#64748B] text-lg mb-1">
+            <p className="text-[#64748B] text-sm mb-0.5">
               Manage your tracking system
             </p>
             <TopBarClock />
           </div>
 
-          <div className="flex items-center gap-2 p-2 bg-white/[0.02] border border-white/[0.05] rounded-2xl backdrop-blur-md">
-            <div className="flex items-center gap-2 px-3 border-r border-white/10 pr-4">
-              <span className="relative flex h-3 w-3">
+          <div className="flex items-center gap-2 p-1.5 bg-white/[0.02] border border-white/[0.05] rounded-xl backdrop-blur-md">
+            <div className="flex items-center gap-2 px-2 border-r border-white/10 pr-3">
+              <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#10B981] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-[#10B981]"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#10B981]"></span>
               </span>
-              <span className="text-xs font-bold text-[#10B981] tracking-wider hidden sm:block">
+              <span className="text-[10px] font-bold text-[#10B981] tracking-wider hidden sm:block">
                 SYSTEM ONLINE
               </span>
             </div>
             <button
               onClick={() => fetchDashboard(true)}
               disabled={isRefreshing}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
             >
               <RefreshCw
-                size={16}
+                size={14}
                 className={
                   isRefreshing
                     ? "animate-spin text-[#7C6FFF]"
@@ -330,7 +330,7 @@ const AdminDashboard = () => {
           variants={staggerContainer}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4"
         >
           <StatCard
             title="Total Users Registered"
@@ -378,7 +378,7 @@ const AdminDashboard = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          className="grid grid-cols-2 md:grid-cols-4 gap-3"
         >
           {[
             { l: "Avg Session Duration", v: "4m 32s" }, // Mocked for display
@@ -388,12 +388,12 @@ const AdminDashboard = () => {
           ].map((s, i) => (
             <div
               key={i}
-              className="glass-card px-5 py-4 flex flex-col justify-center transition-all hover:bg-white/[0.04]"
+              className="glass-card px-4 py-3 flex flex-col justify-center transition-all hover:bg-white/[0.04]"
             >
-              <span className="text-xs text-[#64748B] font-medium uppercase tracking-wider mb-1">
+              <span className="text-[10px] text-[#64748B] font-medium uppercase tracking-wider mb-0.5">
                 {s.l}
               </span>
-              <span className="text-xl font-bold text-white tracking-tight">
+              <span className="text-lg font-bold text-white tracking-tight">
                 {s.v}
               </span>
             </div>
@@ -407,14 +407,14 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
-            className="lg:col-span-2 glass-card flex flex-col h-[400px]"
+            className="lg:col-span-2 glass-card flex flex-col h-[320px]"
           >
-            <div className="p-5 border-b border-white/[0.06] flex items-center gap-3">
-              <span className="relative flex h-2 w-2">
+            <div className="p-4 border-b border-white/[0.06] flex items-center gap-3">
+              <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3B82F6] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3B82F6]"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3B82F6]"></span>
               </span>
-              <h2 className="text-lg font-bold text-white">Live Activity</h2>
+              <h2 className="text-base font-bold text-white">Live Activity</h2>
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-1 nice-scrollbar">
               <AnimatePresence>
@@ -473,9 +473,9 @@ const AdminDashboard = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.7 }}
-            className="glass-card p-6 flex flex-col gap-6 h-[400px]"
+            className="glass-card p-4 flex flex-col gap-4 h-[320px]"
           >
-            <h2 className="text-lg font-bold text-white border-b border-white/[0.06] pb-3 mb-2">
+            <h2 className="text-base font-bold text-white border-b border-white/[0.06] pb-2 mb-1">
               Metrics Overview
             </h2>
 
@@ -503,8 +503,8 @@ const AdminDashboard = () => {
                             color: "#64748B",
                           },
                         ]}
-                        innerRadius={35}
-                        outerRadius={50}
+                        innerRadius={30}
+                        outerRadius={42}
                         paddingAngle={5}
                         dataKey="value"
                         stroke="none"
@@ -568,8 +568,8 @@ const AdminDashboard = () => {
                             color: "#EF4444",
                           },
                         ]}
-                        innerRadius={35}
-                        outerRadius={50}
+                        innerRadius={30}
+                        outerRadius={42}
                         paddingAngle={5}
                         dataKey="value"
                         stroke="none"
@@ -619,16 +619,16 @@ const AdminDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
         >
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+          <div className="mb-4">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
               Quick Actions
             </h2>
-            <p className="text-[#64748B] text-sm">
+            <p className="text-[#64748B] text-xs">
               Navigate to key management areas
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <ActionCard
               to="/admin/access"
               icon={Lock}
@@ -916,7 +916,7 @@ const StatCard = memo(
     <motion.div
       variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
       whileHover={{ y: -4 }}
-      className="relative glass-card p-5 group transition-all duration-300 overflow-hidden"
+      className="relative glass-card p-4 group transition-all duration-300 overflow-hidden"
       style={{
         borderTop: `2px solid ${color}`,
         boxShadow: glow ? `0 0 20px ${color}33` : "none",
@@ -958,7 +958,7 @@ const StatCard = memo(
       </div>
 
       <div className="relative z-10">
-        <h3 className="text-white text-3xl font-black tracking-tight mb-1">
+        <h3 className="text-white text-2xl font-black tracking-tight mb-0.5">
           <AnimatedCounter value={value} />
         </h3>
         <div className="flex items-center gap-2">
@@ -976,21 +976,21 @@ const ActionCard = memo(
   ({ to, onClick, icon: Icon, title, desc, color, badge, pulseBadge }) => {
     const content = (
       <div
-        className="glass-card p-5 flex items-center gap-4 group cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-2xl"
+        className="glass-card p-4 flex items-center gap-4 group cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-2xl"
         style={{ "--hover-color": color }}
       >
         <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-r from-transparent to-[var(--hover-color)] pointer-events-none"></div>
 
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-300 group-hover:scale-110"
+          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-300 group-hover:scale-110"
           style={{
             backgroundColor: `${color}15`,
             borderColor: `${color}30`,
             color: color,
-            boxShadow: `0 0 20px ${color}20`,
+            boxShadow: `0 0 15px ${color}20`,
           }}
         >
-          <Icon size={24} />
+          <Icon size={20} />
         </div>
 
         <div className="flex-1 min-w-0">

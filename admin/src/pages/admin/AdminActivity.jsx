@@ -91,56 +91,56 @@ const StatCard = ({ title, value, icon: Icon, color, change, sparkData, pulse })
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 22 }}
-      className="relative overflow-hidden rounded-2xl p-5 flex flex-col gap-3"
+      className="relative overflow-hidden rounded-xl p-4 flex flex-col gap-2.5"
       style={{
         background: "rgba(255,255,255,0.03)",
         backdropFilter: "blur(16px)",
         border: `1px solid ${color}33`,
-        boxShadow: `0 0 24px ${color}18, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        boxShadow: `0 0 20px ${color}18, inset 0 1px 0 rgba(255,255,255,0.06)`,
       }}
     >
       {/* glow blob */}
       <div
-        className="absolute -top-8 -right-8 w-32 h-32 rounded-full blur-[60px] pointer-events-none"
+        className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-[50px] pointer-events-none"
         style={{ background: `${color}25` }}
       />
 
       {/* header */}
       <div className="flex justify-between items-start relative z-10">
         <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center"
+          className="w-9 h-9 rounded-lg flex items-center justify-center"
           style={{ background: `${color}22`, border: `1px solid ${color}44` }}
         >
-          <Icon size={18} style={{ color }} />
+          <Icon size={16} style={{ color }} />
         </div>
         {pulse && (
           <span className="flex items-center gap-1.5">
-            <span className="relative flex h-2.5 w-2.5">
+            <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
             </span>
-            <span className="text-[10px] font-bold text-emerald-400 tracking-wider">LIVE</span>
+            <span className="text-[9px] font-bold text-emerald-400 tracking-wider">LIVE</span>
           </span>
         )}
       </div>
 
       {/* value */}
       <div className="relative z-10">
-        <div className="text-3xl font-bold text-white tracking-tight">
+        <div className="text-2xl font-bold text-white tracking-tight">
           <AnimCounter value={value} />
         </div>
-        <div className="text-xs text-white/40 mt-0.5 font-medium">{title}</div>
+        <div className="text-[10px] text-white/40 mt-0.5 font-medium uppercase tracking-wider">{title}</div>
       </div>
 
       {/* footer */}
       <div className="flex items-center justify-between relative z-10">
         <div
-          className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+          className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
             positive ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"
           }`}
         >
-          {positive ? <ArrowUp size={10} /> : <ArrowDown size={10} />}
-          {Math.abs(change)}% vs last wk
+          {positive ? <ArrowUp size={8} /> : <ArrowDown size={8} />}
+          {Math.abs(change)}%
         </div>
         <Sparkline data={sparkData} color={color} />
       </div>
@@ -349,20 +349,20 @@ const AdminActivity = () => {
   // ────────────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen w-full bg-[#0a0f1e] overflow-x-hidden selection:bg-[#7C6FFF]/30">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-7">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
 
         {/* ── HEADER ─────────────────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: -18 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+          className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
         >
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-1.5 h-8 rounded-full" style={{ background: "linear-gradient(#7C6FFF,#00F5C4)" }} />
-              <h1 className="text-3xl font-bold text-white tracking-tight">Activity Report</h1>
+            <div className="flex items-center gap-3 mb-0.5">
+              <div className="w-1 h-6 rounded-full" style={{ background: "linear-gradient(#7C6FFF,#00F5C4)" }} />
+              <h1 className="text-2xl font-bold text-white tracking-tight">Activity Report</h1>
             </div>
-            <p className="text-white/40 text-sm ml-5">
+            <p className="text-white/40 text-xs ml-4">
               Real-time platform analytics &amp; intelligence
             </p>
           </div>
@@ -370,17 +370,17 @@ const AdminActivity = () => {
             <button
               onClick={() => fetchData(range)}
               disabled={loading}
-              className="flex items-center gap-2 text-sm text-[#00F5C4]/80 hover:text-[#00F5C4] transition-colors bg-[#00F5C4]/[0.04] hover:bg-[#00F5C4]/[0.1] px-4 py-2 rounded-xl border border-[#00F5C4]/[0.1] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 text-xs text-[#00F5C4]/80 hover:text-[#00F5C4] transition-colors bg-[#00F5C4]/[0.04] hover:bg-[#00F5C4]/[0.1] px-3 py-1.5 rounded-lg border border-[#00F5C4]/[0.1] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+              <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
               Refresh
             </button>
             <Link
               to="/admin"
-              className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors bg-white/[0.04] hover:bg-white/[0.07] px-4 py-2 rounded-xl border border-white/[0.06]"
+              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white transition-colors bg-white/[0.04] hover:bg-white/[0.07] px-3 py-1.5 rounded-lg border border-white/[0.06]"
             >
-              <ChevronRight size={14} className="rotate-180" />
-              Back to Dashboard
+              <ChevronRight size={12} className="rotate-180" />
+              Back
             </Link>
           </div>
         </motion.div>
@@ -455,7 +455,7 @@ const AdminActivity = () => {
 
           {/* Chart */}
           <div
-            className="xl:col-span-2 rounded-2xl p-5 flex flex-col gap-4"
+            className="xl:col-span-2 rounded-2xl p-4 flex flex-col gap-3"
             style={{
               background: "rgba(255,255,255,0.025)",
               backdropFilter: "blur(16px)",
@@ -604,7 +604,7 @@ const AdminActivity = () => {
                   <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400"} opacity-75`} />
                   <span className={`relative inline-flex rounded-full h-2 w-2 ${isConnected ? "bg-emerald-400" : "bg-red-400"}`} />
                 </span>
-                <span className={`text-xs font-bold tracking-wider ${isConnected ? "text-emerald-400" : "text-red-400"}`}>
+                <span className={`text-[10px] font-bold tracking-wider ${isConnected ? "text-emerald-400" : "text-red-400"}`}>
                   {isConnected ? "● LIVE" : "● CONNECTING"}
                 </span>
               </div>

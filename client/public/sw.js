@@ -215,8 +215,8 @@ self.addEventListener("push", (event) => {
           // Fallback: Show a tap-to-resume notification the old way
           return self.registration.showNotification("📍 Resume Location Sharing", {
             body: "GPS is on. Tap here to automatically share your live location.",
-            icon: "/favicon.svg",
-            badge: "/favicon.svg",
+            icon: "/location.png",
+            badge: "/location.png",
             vibrate: [200, 100, 200],
             tag: "neural-resume",
             renotify: true,
@@ -242,8 +242,8 @@ self.addEventListener("push", (event) => {
     body:
       payload.body ||
       "Someone is requesting your location. Tap to open the tracker.",
-    icon: payload.icon || "/favicon.svg",
-    badge: "/favicon.svg",
+    icon: payload.icon || "/location.png",
+    badge: "/location.png",
     vibrate: [200, 100, 200, 100, 200, 100, 200],
     data: payload.data || {},
     requireInteraction: true, // Keeps the notification open until the user taps it

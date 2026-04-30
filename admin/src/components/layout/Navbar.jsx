@@ -40,7 +40,7 @@ const Navbar = () => {
             to="/"
             className="flex items-center gap-2 font-bold text-base text-white"
           >
-            <span className="text-xl">📍</span>
+            <img src="/location.png" alt="Logo" className="w-6 h-6 object-contain" />
             <span className="hidden sm:block">
               Location<span className="text-indigo-400">Tracker</span>
             </span>

@@ -803,7 +803,8 @@ const LiveMap = () => {
         <div className="w-full lg:w-2/3 xl:w-[65%] flex flex-col gap-6">
           <div className="space-y-4">
             <h2 className="text-lg font-medium text-white/90 border-b border-white/10 pb-2">
-              📍 Location Insights
+              <img src="/location.png" alt="" className="w-5 h-5 inline-block mr-2" />
+              Location Insights
             </h2>
 
             {/* ── Neural Ping Info Block ─────────────────────────── */}

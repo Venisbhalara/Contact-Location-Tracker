@@ -316,7 +316,9 @@ const TrackingLink = () => {
       <Page>
         <GlassCard>
           {/* Header */}
-          <IconRing color="#6366f1">📍</IconRing>
+          <IconRing color="#6366f1">
+            <img src="/location.png" alt="NexTrack Logo" className="w-12 h-12 object-contain" />
+          </IconRing>
           <h1 className="text-2xl font-black text-white text-center mb-2 tracking-tight">
             Location Request
           </h1>

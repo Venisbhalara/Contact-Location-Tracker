@@ -12,7 +12,7 @@ const features = [
     iconBg: "bg-indigo-500/15 border-indigo-500/30",
   },
   {
-    icon: "📍",
+    icon: <img src="/location.png" alt="Live Tracking" className="w-8 h-8 object-contain" />,
     title: "Live GPS Tracking",
     desc: "Real-time location updates via WebSocket with near-zero latency and sub-meter precision.",
     color: "from-cyan-500/20 to-cyan-500/5",

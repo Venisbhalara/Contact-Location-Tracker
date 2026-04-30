@@ -150,7 +150,7 @@ const Login = () => {
               boxShadow: "0 0 40px rgba(99,102,241,0.4)",
             }}
           >
-            <span className="text-2xl">📍</span>
+            <img src="/location.png" alt="NexTrack Logo" className="w-10 h-10 object-contain drop-shadow-lg" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Welcome back</h1>
           <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -168,17 +168,6 @@ const Login = () => {
             boxShadow: "0 32px 80px rgba(0,0,0,0.5)",
           }}
         >
-          {/* Google first */}
-          <GoogleButton
-            onClick={() => customGoogleLogin()}
-            loading={loading}
-            label="Continue with Google"
-          />
-
-          <div className="my-5">
-            <OrDivider />
-          </div>
-
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Field
@@ -254,6 +243,16 @@ const Login = () => {
               )}
             </button>
           </form>
+
+          <div className="my-6">
+            <OrDivider />
+          </div>
+
+          <GoogleButton
+            onClick={() => customGoogleLogin()}
+            loading={loading}
+            label="Continue with Google"
+          />
 
           {/* Footer link */}
           <p className="text-center text-sm mt-6" style={{ color: "rgba(255,255,255,0.35)" }}>

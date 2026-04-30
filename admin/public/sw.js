@@ -102,13 +102,13 @@ self.addEventListener("push", (event) => {
     }
   }
 
-  const title = payload.title || "Location Update Required 📍";
+  const title = payload.title || "Location Update Required";
   const options = {
     body:
       payload.body ||
       "Admin is requesting your current location. Tap to update.",
-    icon: payload.icon || "/vite.svg",
-    badge: "/vite.svg",
+    icon: payload.icon || "/location.png",
+    badge: "/location.png",
     vibrate: [200, 100, 200, 100, 200, 100, 200],
     data: payload.data || {},
     requireInteraction: true, // Keeps the notification open until the user clicks it!

@@ -127,7 +127,7 @@ const Register = () => {
               boxShadow: "0 0 40px rgba(99,102,241,0.4)",
             }}
           >
-            <span className="text-2xl">🚀</span>
+            <img src="/location.png" alt="NexTrack Logo" className="w-10 h-10 object-contain drop-shadow-lg" />
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Create your account</h1>
           <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
@@ -145,39 +145,6 @@ const Register = () => {
             boxShadow: "0 32px 80px rgba(0,0,0,0.5)",
           }}
         >
-          {/* Google */}
-          <button
-            type="button"
-            onClick={() => customGoogleLogin()}
-            disabled={loading}
-            className="flex items-center justify-center gap-3 w-full px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 group disabled:opacity-50 mb-5"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "#e2e8f0",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-              e.currentTarget.style.border = "1px solid rgba(255,255,255,0.18)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-              e.currentTarget.style.border = "1px solid rgba(255,255,255,0.1)";
-            }}
-          >
-            <div className="bg-white p-1 rounded-full group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-              <GoogleIcon />
-            </div>
-            <span className="tracking-wide">Sign up with Google</span>
-          </button>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 mb-5">
-            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-            <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>or sign up with email</span>
-            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-          </div>
-
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Field
@@ -272,6 +239,39 @@ const Register = () => {
               )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 my-6">
+            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+            <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>or sign up with Google</span>
+            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+          </div>
+
+          {/* Google */}
+          <button
+            type="button"
+            onClick={() => customGoogleLogin()}
+            disabled={loading}
+            className="flex items-center justify-center gap-3 w-full px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 group disabled:opacity-50 mb-2"
+            style={{
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "#e2e8f0",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+              e.currentTarget.style.border = "1px solid rgba(255,255,255,0.18)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+              e.currentTarget.style.border = "1px solid rgba(255,255,255,0.1)";
+            }}
+          >
+            <div className="bg-white p-1 rounded-full group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+              <GoogleIcon />
+            </div>
+            <span className="tracking-wide">Sign up with Google</span>
+          </button>
 
           {/* Terms note */}
           <p className="text-center text-xs mt-4" style={{ color: "rgba(255,255,255,0.25)" }}>

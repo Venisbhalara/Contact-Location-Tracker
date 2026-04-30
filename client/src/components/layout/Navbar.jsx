@@ -30,17 +30,8 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-black shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, #6366f1, #a855f7)',
-                boxShadow: '0 0 16px rgba(99,102,241,0.4)',
-              }}
-            >
-              LT
-            </div>
+            <img src="/location.png" alt="NexTrack Logo" className="w-9 h-9 object-contain drop-shadow-xl" />
             <span className="hidden sm:block font-bold text-lg text-white tracking-tight">
               Nex<span style={{ color: '#a3a6ff' }}>Track</span>
             </span>

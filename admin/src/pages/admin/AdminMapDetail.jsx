@@ -181,7 +181,7 @@ const AdminMapDetail = () => {
         {/* RIGHT: INSIGHTS GRID */}
         <div className="lg:w-2/3 flex flex-col gap-6">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">📍</span>
+            <img src="/location.png" alt="NexTrack" className="w-8 h-8 object-contain" />
             <h2 className="text-2xl font-bold text-white tracking-tight">Location Insights</h2>
           </div>
 

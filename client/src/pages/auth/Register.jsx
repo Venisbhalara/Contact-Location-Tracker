@@ -19,10 +19,10 @@ const GoogleIcon = () => (
 const Field = ({ label, name, type = "text", placeholder, value, onChange, hint }) => (
   <div className="flex flex-col gap-1.5">
     <div className="flex items-center justify-between">
-      <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.45)" }}>
+      <label className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>
         {label}
       </label>
-      {hint && <span className="text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>{hint}</span>}
+      {hint && <span className="text-[10px] font-bold" style={{ color: "rgba(255,255,255,0.2)" }}>{hint}</span>}
     </div>
     <input
       name={name}
@@ -31,21 +31,52 @@ const Field = ({ label, name, type = "text", placeholder, value, onChange, hint 
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none transition-all duration-200"
+      className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none transition-all duration-300 shadow-inner"
       style={{
-        background: "rgba(0,0,0,0.45)",
+        background: "rgba(0,0,0,0.3)",
         border: "1px solid rgba(255,255,255,0.08)",
       }}
-      onFocus={e => {
-        e.target.style.border = "1px solid rgba(99,102,241,0.6)";
-        e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12), 0 0 20px rgba(99,102,241,0.08)";
-      }}
-      onBlur={e => {
-        e.target.style.border = "1px solid rgba(255,255,255,0.08)";
-        e.target.style.boxShadow = "none";
-      }}
+      onFocus={e => e.target.style.borderColor = "rgba(99,102,241,0.5)"}
+      onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.08)"}
     />
   </div>
+);
+
+/* ── Divider ─────────────────────────────────────────────────────── */
+const OrDivider = () => (
+  <div className="flex items-center gap-4">
+    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.2)" }}>OR</span>
+    <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+  </div>
+);
+
+/* ── Google button ───────────────────────────────────────────────── */
+const GoogleButton = ({ onClick, loading, label }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={loading}
+    className="flex items-center justify-center gap-3 w-full px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 group disabled:opacity-50"
+    style={{
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.08)",
+      color: "#e2e8f0",
+    }}
+    onMouseEnter={e => {
+      e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+      e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+      e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+    }}
+  >
+    <div className="bg-white p-1 rounded-full group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+      <GoogleIcon />
+    </div>
+    <span className="tracking-wide">{label}</span>
+  </button>
 );
 
 /* ══════════════════════════════════════════════════════════════════ */
@@ -68,6 +99,7 @@ const Register = () => {
       toast.success("Account created successfully!");
       navigate("/dashboard");
     } catch (err) {
+      console.error("Register error:", err);
       toast.error(err.response?.data?.message || "Registration failed.");
     } finally {
       setLoading(false);
@@ -83,6 +115,7 @@ const Register = () => {
         toast.success("Signed in with Google successfully!");
         navigate("/dashboard");
       } catch (err) {
+        console.error("Google Auth error:", err);
         toast.error(err.response?.data?.message || "Google registration failed.");
       } finally {
         setLoading(false);
@@ -119,34 +152,33 @@ const Register = () => {
       <div className="relative z-10 w-full max-w-md">
 
         {/* Header */}
-        <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5 shadow-2xl"
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-6 shadow-2xl"
             style={{
               background: "linear-gradient(135deg, #6366f1, #a855f7)",
-              boxShadow: "0 0 40px rgba(99,102,241,0.4)",
+              boxShadow: "0 0 50px rgba(99,102,241,0.4)",
             }}
           >
-            <img src="/location.png" alt="NexTrack Logo" className="w-10 h-10 object-contain drop-shadow-lg" />
+            <img src="/location.png" alt="NexTrack Logo" className="w-12 h-12 object-contain drop-shadow-lg" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Create your account</h1>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <h1 className="text-4xl font-black text-white tracking-tight mb-2">Join NexTrack</h1>
+          <p className="text-slate-500 font-medium tracking-wide">
             Start tracking in seconds — it's free
           </p>
         </div>
 
         {/* Card */}
         <div
-          className="rounded-2xl p-8"
+          className="rounded-[2.5rem] p-10"
           style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(24px)",
-            boxShadow: "0 32px 80px rgba(0,0,0,0.5)",
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            backdropFilter: "blur(40px)",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
           }}
         >
           {/* Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <Field
               label="Full name"
               name="name"
@@ -164,52 +196,47 @@ const Register = () => {
             />
 
             {/* Password with strength indicator */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.45)" }}>
+                <label className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>
                   Password
                 </label>
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="text-xs transition-colors duration-200"
-                  style={{ color: "rgba(163,166,255,0.7)" }}
+                  className="text-[10px] font-bold uppercase tracking-[0.05em] text-indigo-400/80 hover:text-indigo-400 transition-colors"
                 >
                   {showPw ? "Hide" : "Show"}
                 </button>
               </div>
-              <input
-                name="password"
-                type={showPw ? "text" : "password"}
-                required
-                placeholder="Min. 6 characters"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none transition-all duration-200"
-                style={{
-                  background: "rgba(0,0,0,0.45)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  letterSpacing: form.password && !showPw ? "0.2em" : "normal",
-                }}
-                onFocus={e => {
-                  e.target.style.border = "1px solid rgba(99,102,241,0.6)";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12)";
-                }}
-                onBlur={e => {
-                  e.target.style.border = "1px solid rgba(255,255,255,0.08)";
-                  e.target.style.boxShadow = "none";
-                }}
-              />
+              <div className="relative group">
+                <input
+                  name="password"
+                  type={showPw ? "text" : "password"}
+                  required
+                  placeholder="Min. 6 characters"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none transition-all duration-300 shadow-inner"
+                  style={{
+                    background: "rgba(0,0,0,0.3)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    letterSpacing: form.password && !showPw ? "0.4em" : "normal",
+                  }}
+                  onFocus={e => e.target.style.borderColor = "rgba(99,102,241,0.5)"}
+                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.08)"}
+                />
+              </div>
               {/* Strength bar */}
               {pwStrength && (
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mt-1 px-1">
                   <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ width: pwStrength.width, background: pwStrength.color }}
                     />
                   </div>
-                  <span className="text-xs font-medium" style={{ color: pwStrength.color }}>{pwStrength.label}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: pwStrength.color }}>{pwStrength.label}</span>
                 </div>
               )}
             </div>
@@ -218,87 +245,51 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl font-semibold text-sm text-white transition-all duration-300 mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-xl font-bold text-sm text-white transition-all duration-500 mt-2 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
               style={{
-                background: loading ? "rgba(99,102,241,0.5)" : "linear-gradient(135deg, #6366f1, #a855f7)",
-                boxShadow: loading ? "none" : "0 0 24px rgba(99,102,241,0.4)",
+                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5)",
               }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.boxShadow = "0 0 36px rgba(99,102,241,0.6)"; }}
-              onMouseLeave={e => { if (!loading) e.currentTarget.style.boxShadow = "0 0 24px rgba(99,102,241,0.4)"; }}
             >
               {loading ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Creating account...
-                </>
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
               ) : (
-                "Create Account →"
+                <>
+                  Create Account
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </>
               )}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-            <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>or sign up with Google</span>
-            <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+          <div className="my-8">
+            <OrDivider />
           </div>
 
-          {/* Google */}
-          <button
-            type="button"
+          <GoogleButton
             onClick={() => customGoogleLogin()}
-            disabled={loading}
-            className="flex items-center justify-center gap-3 w-full px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 group disabled:opacity-50 mb-2"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "#e2e8f0",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-              e.currentTarget.style.border = "1px solid rgba(255,255,255,0.18)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-              e.currentTarget.style.border = "1px solid rgba(255,255,255,0.1)";
-            }}
-          >
-            <div className="bg-white p-1 rounded-full group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
-              <GoogleIcon />
-            </div>
-            <span className="tracking-wide">Sign up with Google</span>
-          </button>
+            loading={loading}
+            label="Sign up with Google"
+          />
 
           {/* Terms note */}
-          <p className="text-center text-xs mt-4" style={{ color: "rgba(255,255,255,0.25)" }}>
-            By creating an account, you agree to our{" "}
-            <Link to="/terms" className="underline hover:text-slate-300 transition-colors">Terms</Link>
+          <p className="text-center text-[10px] mt-6 text-slate-600 font-bold uppercase tracking-widest leading-relaxed">
+            By joining, you agree to our{" "}
+            <Link to="/terms" className="text-slate-400 hover:text-indigo-400 transition-colors">Terms</Link>
             {" & "}
-            <Link to="/privacy-policy" className="underline hover:text-slate-300 transition-colors">Privacy Policy</Link>
+            <Link to="/privacy-policy" className="text-slate-400 hover:text-indigo-400 transition-colors">Privacy</Link>
           </p>
 
-          {/* Footer link */}
-          <p className="text-center text-sm mt-5" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-center text-sm mt-8 text-slate-500 font-medium">
             Already have an account?{" "}
-            <Link
-              to="/login"
-              className="font-semibold transition-colors duration-200"
-              style={{ color: "#a3a6ff" }}
-              onMouseEnter={e => e.currentTarget.style.color = "#c180ff"}
-              onMouseLeave={e => e.currentTarget.style.color = "#a3a6ff"}
-            >
+            <Link to="/login" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors">
               Sign in
             </Link>
           </p>
         </div>
 
-        {/* Trust note */}
-        <p className="text-center text-xs mt-6" style={{ color: "rgba(255,255,255,0.2)" }}>
-          🔒 Your data is encrypted and never shared
+        <p className="text-center text-[10px] mt-10 text-slate-600 uppercase tracking-widest font-bold">
+          🛡️ Trusted by users worldwide
         </p>
       </div>
     </div>

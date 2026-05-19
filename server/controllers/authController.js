@@ -62,6 +62,8 @@ const register = async (req, res) => {
         email: user.email,
         role: user.role,
         trackingAccess: user.trackingAccess,
+        trackingBalance: user.trackingBalance,
+        planType: user.planType,
         createdAt: user.createdAt,
       },
     });
@@ -85,7 +87,6 @@ const login = async (req, res) => {
       .status(400)
       .json({ message: errors.array()[0].msg, errors: errors.array() });
   }
-  console.log("LOGIN BODY:", req.body); // 👈 ADD THIS LINE
 
   const { email, password } = req.body;
 
@@ -146,6 +147,8 @@ const login = async (req, res) => {
         email: user.email,
         role: user.role,
         trackingAccess: user.trackingAccess,
+        trackingBalance: user.trackingBalance,
+        planType: user.planType,
         createdAt: user.createdAt,
       },
     });
@@ -169,6 +172,8 @@ const getMe = async (req, res) => {
         email: req.user.email,
         role: req.user.role,
         trackingAccess: req.user.trackingAccess,
+        trackingBalance: req.user.trackingBalance,
+        planType: req.user.planType,
         createdAt: req.user.createdAt,
       },
     });
@@ -258,6 +263,8 @@ const googleAuth = async (req, res) => {
         email: user.email,
         role: user.role,
         trackingAccess: user.trackingAccess,
+        trackingBalance: user.trackingBalance,
+        planType: user.planType,
         createdAt: user.createdAt,
       },
     });

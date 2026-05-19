@@ -46,7 +46,7 @@ const User = sequelize.define(
     accessStatus: {
       type: DataTypes.STRING(20),
       allowNull: true,
-      defaultValue: "pending",  // New users must await admin approval
+      defaultValue: "pending", // New users must await admin approval
       field: "access_status",
     },
     trackingAccess: {
@@ -87,6 +87,18 @@ const User = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
       field: "plain_password",
+    },
+    trackingBalance: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: "tracking_balance",
+    },
+    planType: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: "free",
+      field: "plan_type",
     },
   },
   {

@@ -9,6 +9,8 @@ const REQUIRED_ENV_VARS = [
   "DB_USER",
   "DB_PASSWORD",
   "JWT_SECRET",
+  "RAZORPAY_KEY_ID",
+  "RAZORPAY_KEY_SECRET",
 ];
 const missingVars = REQUIRED_ENV_VARS.filter((v) => !process.env[v]);
 if (missingVars.length > 0) {
@@ -123,6 +125,7 @@ app.use("/api/tracking", require("./routes/tracking"));
 app.use("/api/access", require("./routes/access"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/push", require("./routes/push"));
+app.use("/api/payment", require("./routes/paymentRoutes"));
 
 // Root check
 app.get("/", (req, res) => {

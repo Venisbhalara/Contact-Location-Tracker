@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import BackButton from "../../components/common/BackButton";
 import toast from "react-hot-toast";
-import { 
-  getAdminUsers, 
-  updateAdminUserRole, 
-  updateAdminUserAccess, 
-  deleteAdminUser 
+import {
+  getAdminUsers,
+  updateAdminUserRole,
+  updateAdminUserAccess,
+  deleteAdminUser,
 } from "../../services/api";
 import LoadingScreen from "../../components/common/LoadingScreen";
 
@@ -13,7 +13,7 @@ const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userToDelete, setUserToDelete] = useState(null);
-  
+
   // Filtering & Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -37,7 +37,9 @@ const AdminUsers = () => {
   const handleRoleChange = async (user, newRole) => {
     const originalUsers = [...users];
     try {
-      setUsers(users.map(u => u.id === user.id ? { ...u, role: newRole } : u));
+      setUsers(
+        users.map((u) => (u.id === user.id ? { ...u, role: newRole } : u)),
+      );
       await updateAdminUserRole(user.id, { role: newRole });
       toast.success(`${user.name} is now ${newRole}`);
     } catch (err) {
@@ -49,7 +51,11 @@ const AdminUsers = () => {
   const handleAccessChange = async (user, newAccess) => {
     const originalUsers = [...users];
     try {
-      setUsers(users.map(u => u.id === user.id ? { ...u, accessStatus: newAccess } : u));
+      setUsers(
+        users.map((u) =>
+          u.id === user.id ? { ...u, accessStatus: newAccess } : u,
+        ),
+      );
       await updateAdminUserAccess(user.id, { accessStatus: newAccess });
       toast.success(`${user.name}'s access ${newAccess}`);
     } catch (err) {
@@ -66,7 +72,7 @@ const AdminUsers = () => {
     if (!userToDelete) return;
     try {
       await deleteAdminUser(userToDelete.id);
-      setUsers(users.filter(u => u.id !== userToDelete.id));
+      setUsers(users.filter((u) => u.id !== userToDelete.id));
       toast.success("User deleted permanently");
     } catch (err) {
       toast.error(err.response?.data?.message || "Delete failed");
@@ -76,11 +82,13 @@ const AdminUsers = () => {
   };
 
   // Derived state for rendering
-  const filteredUsers = users.filter(u => {
-    const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          u.email.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredUsers = users.filter((u) => {
+    const matchesSearch =
+      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = roleFilter === "all" || u.role === roleFilter;
-    const matchesAccess = accessFilter === "all" || u.accessStatus === accessFilter;
+    const matchesAccess =
+      accessFilter === "all" || u.accessStatus === accessFilter;
     return matchesSearch && matchesRole && matchesAccess;
   });
 
@@ -93,21 +101,23 @@ const AdminUsers = () => {
         <h1 className="text-2xl font-bold text-white border-l-4 border-indigo-500 pl-3">
           Manage Users
         </h1>
-        <p className="text-slate-400 mt-1 text-sm">View, modify, and control access for all user accounts.</p>
+        <p className="text-slate-400 mt-1 text-sm">
+          View, modify, and control access for all user accounts.
+        </p>
       </div>
 
       {/* Filters & Search */}
       <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-xl p-3 mb-6 flex flex-col md:flex-row gap-3 justify-between items-center shadow-sm">
-        <input 
-          type="text" 
-          placeholder="🔍 Search name or email..." 
+        <input
+          type="text"
+          placeholder="🔍 Search name or email..."
           className="w-full md:w-1/3 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        
+
         <div className="flex w-full md:w-auto gap-4">
-          <select 
+          <select
             className="w-full md:w-auto bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
@@ -116,8 +126,8 @@ const AdminUsers = () => {
             <option value="user">Users</option>
             <option value="admin">Admins</option>
           </select>
-          
-          <select 
+
+          <select
             className="w-full md:w-auto bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
             value={accessFilter}
             onChange={(e) => setAccessFilter(e.target.value)}
@@ -145,18 +155,28 @@ const AdminUsers = () => {
             <tbody className="divide-y divide-slate-800">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                  <td
+                    colSpan="5"
+                    className="px-6 py-12 text-center text-slate-500"
+                  >
                     No users found matching your filters.
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map(u => {
+                filteredUsers.map((u) => {
                   const isMasterAdmin = u.email === "vasu@gmail.com";
                   return (
-                    <tr key={u.id} className="hover:bg-slate-800/20 transition-colors">
+                    <tr
+                      key={u.id}
+                      className="hover:bg-slate-800/20 transition-colors"
+                    >
                       <td className="px-4 py-3">
-                        <div className="font-medium text-sm text-white">{u.name}</div>
-                        <div className="text-[11px] text-slate-400">{u.email}</div>
+                        <div className="font-medium text-sm text-white">
+                          {u.name}
+                        </div>
+                        <div className="text-[11px] text-slate-400">
+                          {u.email}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-teal-500/10 text-teal-400 border border-teal-500/20">
@@ -177,33 +197,50 @@ const AdminUsers = () => {
                       <td className="px-4 py-3">
                         <button
                           disabled={isMasterAdmin}
-                          onClick={() => handleAccessChange(u, u.accessStatus === "approved" ? "revoked" : "approved")}
+                          onClick={() =>
+                            handleAccessChange(
+                              u,
+                              u.accessStatus === "approved"
+                                ? "revoked"
+                                : "approved",
+                            )
+                          }
                           className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                            u.accessStatus === "approved" ? 'bg-indigo-500' : 'bg-slate-700'
-                          } ${isMasterAdmin ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                            u.accessStatus === "approved"
+                              ? "bg-indigo-500"
+                              : "bg-slate-700"
+                          } ${isMasterAdmin ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                         >
                           <span
                             className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                              u.accessStatus === "approved" ? 'translate-x-5' : 'translate-x-1'
+                              u.accessStatus === "approved"
+                                ? "translate-x-5"
+                                : "translate-x-1"
                             }`}
                           />
                         </button>
-                        <span className={`ml-2 text-xs ${u.accessStatus === "approved" ? "text-indigo-400" : "text-slate-500"}`}>
+                        <span
+                          className={`ml-2 text-xs ${u.accessStatus === "approved" ? "text-indigo-400" : "text-slate-500"}`}
+                        >
                           {u.accessStatus === "approved" ? "Active" : "Revoked"}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button 
+                        <button
                           disabled={isMasterAdmin}
                           onClick={() => confirmDelete(u)}
                           className={`text-red-400 hover:text-red-300 transition-colors p-1.5 rounded-lg hover:bg-red-400/10 text-xs ${isMasterAdmin ? "opacity-50 cursor-not-allowed" : ""}`}
-                          title={isMasterAdmin ? "Cannot delete master admin" : "Delete User Permanently"}
+                          title={
+                            isMasterAdmin
+                              ? "Cannot delete master admin"
+                              : "Delete User Permanently"
+                          }
                         >
                           Delete
                         </button>
                       </td>
                     </tr>
-                  )
+                  );
                 })
               )}
             </tbody>
@@ -214,20 +251,36 @@ const AdminUsers = () => {
       {/* Delete Modal */}
       {userToDelete && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-in fade-in duration-200">
-          <div 
-            className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" 
+          <div
+            className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity"
             onClick={() => setUserToDelete(null)}
           ></div>
           <div className="relative bg-slate-900 border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-2xl max-w-md w-full transform transition-all text-center animate-in zoom-in-95 duration-200">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 mb-6 border border-red-500/20 shadow-inner shadow-red-500/20">
-              <svg className="h-8 w-8 text-red-500 opacity-90 drop-shadow-md" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="h-8 w-8 text-red-500 opacity-90 drop-shadow-md"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Delete User Record</h3>
+            <h3 className="text-xl font-bold text-white mb-2 tracking-tight">
+              Delete User Record
+            </h3>
             <p className="text-slate-400 mb-8 leading-relaxed text-sm">
-              Are you absolutely sure you want to delete <span className="text-red-400 font-semibold">{userToDelete.name}</span>? 
-              This action cannot be undone and will permanently erase all associated data and tracking history.
+              Are you absolutely sure you want to delete{" "}
+              <span className="text-red-400 font-semibold">
+                {userToDelete.name}
+              </span>
+              ? This action cannot be undone and will permanently erase all
+              associated data and tracking history.
             </p>
             <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 justify-center">
               <button

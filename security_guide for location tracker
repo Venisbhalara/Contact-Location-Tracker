@@ -1,0 +1,778 @@
+# 🔐 Complete Website Security Hardening Guide
+**Stack: React (Vercel) · Node.js (Render) · Aiven (PostgreSQL/MySQL)**
+
+---
+
+## 1. 🛡️ Web Application Firewall (WAF)
+
+### Recommended: Cloudflare (Free Tier — works with Vercel + Render)
+
+Cloudflare sits between your users and your servers, blocking attacks before they reach your app.
+
+**What it blocks:**
+- SQL Injection, XSS, CSRF
+- DDoS (volumetric + application layer)
+- Bad bots, scrapers, credential stuffing
+- Brute force login attacks
+
+### Setup Steps
+
+1. Go to [cloudflare.com](https://cloudflare.com) → Add your domain
+2. Update your domain's nameservers to Cloudflare's
+3. In Cloudflare Dashboard → **Security → WAF**:
+   - Enable **OWASP Core Ruleset**
+   - Enable **Cloudflare Managed Rules**
+4. Set **Security Level** to `High`
+5. Enable **Bot Fight Mode** (Free) or **Super Bot Fight Mode** (Pro)
+6. Create a custom WAF rule to rate-limit your API:
+
+```
+Field: URI Path → contains → /api/
+Rate: 100 requests per 1 minute per IP
+Action: Block
+```
+
+7. Enable **DDoS Protection** (automatic on all plans)
+8. For Render backend: Add a Cloudflare Worker or use **Cloudflare Tunnel** to proxy `/api/*` to your Render URL
+
+> **Shared Hosting Alternative:** Use Sucuri Firewall ($9.99/mo) — point DNS to Sucuri, configure origin IP.
+
+---
+
+## 2. 🔒 SSL/HTTPS Configuration
+
+### Vercel (Client & Admin)
+Vercel auto-provisions SSL via Let's Encrypt. Ensure:
+- Custom domain is added in **Vercel Dashboard → Domains**
+- HTTPS is enforced by default — no extra config needed
+
+### Render (Server/API)
+Render also auto-provisions SSL. In your `render.yaml` or dashboard:
+- Ensure your service uses HTTPS endpoint (e.g., `https://your-app.onrender.com`)
+- Force HTTPS in your Node.js app:
+
+```javascript
+// server/index.js or app.js
+app.use((req, res, next) => {
+  if (req.headers['x-forwarded-proto'] !== 'https' && process.env.NODE_ENV === 'production') {
+    return res.redirect(301, 'https://' + req.headers.host + req.url);
+  }
+  next();
+});
+```
+
+### Nginx (if self-hosting)
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+
+# Auto-renew (add to crontab)
+0 3 * * * certbot renew --quiet
+```
+
+```nginx
+# nginx.conf — Force HTTPS
+server {
+  listen 80;
+  server_name yourdomain.com www.yourdomain.com;
+  return 301 https://$host$request_uri;
+}
+```
+
+---
+
+## 3. 🧱 Server-Level Firewall (UFW + Fail2Ban)
+
+> Applies if you ever self-host. Render manages this for you on their platform.
+
+### UFW Setup
+```bash
+sudo apt update && sudo apt install ufw -y
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp    # SSH
+sudo ufw allow 80/tcp    # HTTP
+sudo ufw allow 443/tcp   # HTTPS
+sudo ufw enable
+sudo ufw status verbose
+```
+
+### Fail2Ban Setup
+```bash
+sudo apt install fail2ban -y
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sudo nano /etc/fail2ban/jail.local
+```
+
+```ini
+[DEFAULT]
+bantime  = 3600
+findtime = 600
+maxretry = 5
+destemail = your@email.com
+action = %(action_mwl)s
+
+[sshd]
+enabled = true
+port    = ssh
+logpath = %(sshd_log)s
+
+[nginx-http-auth]
+enabled = true
+```
+
+```bash
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+sudo fail2ban-client status
+```
+
+### Disable Root SSH Login
+```bash
+sudo nano /etc/ssh/sshd_config
+# Set:
+PermitRootLogin no
+PasswordAuthentication no
+PubkeyAuthentication yes
+
+sudo systemctl restart sshd
+```
+
+### SSH Key Auth
+```bash
+# On your local machine:
+ssh-keygen -t ed25519 -C "your@email.com"
+ssh-copy-id user@your-server-ip
+```
+
+---
+
+## 4. 🔑 Login & Authentication Security
+
+### For Your Node.js Backend (Render)
+
+**Enforce Strong Passwords:**
+```javascript
+// Install: npm install zxcvbn
+import zxcvbn from 'zxcvbn';
+
+function validatePassword(password) {
+  if (password.length < 12) throw new Error('Minimum 12 characters required');
+  const result = zxcvbn(password);
+  if (result.score < 3) throw new Error('Password too weak');
+}
+```
+
+**Rate Limit Login Attempts:**
+```bash
+npm install express-rate-limit
+```
+```javascript
+import rateLimit from 'express-rate-limit';
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.post('/api/auth/login', loginLimiter, loginController);
+```
+
+**Enable 2FA (TOTP):**
+```bash
+npm install speakeasy qrcode
+```
+```javascript
+import speakeasy from 'speakeasy';
+import QRCode from 'qrcode';
+
+// Generate secret
+const secret = speakeasy.generateSecret({ name: 'YourApp' });
+const qrUrl = await QRCode.toDataURL(secret.otpauth_url);
+
+// Verify token
+const verified = speakeasy.totp.verify({
+  secret: secret.base32,
+  encoding: 'base32',
+  token: userSubmittedToken,
+  window: 1,
+});
+```
+
+**Add CAPTCHA (hCaptcha — GDPR friendly):**
+```javascript
+// Backend verification
+const response = await fetch('https://hcaptcha.com/siteverify', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  body: `secret=${process.env.HCAPTCHA_SECRET}&response=${captchaToken}`,
+});
+const data = await response.json();
+if (!data.success) throw new Error('CAPTCHA failed');
+```
+
+---
+
+## 5. 🛡️ Protection Against Common Attacks
+
+### SQL Injection — Use Parameterized Queries
+```javascript
+// ❌ NEVER do this:
+const query = `SELECT * FROM users WHERE email = '${email}'`;
+
+// ✅ Always use parameterized queries (pg / mysql2):
+const { rows } = await pool.query(
+  'SELECT * FROM users WHERE email = $1', [email]
+);
+
+// With Prisma (ORM) — inherently safe:
+const user = await prisma.user.findUnique({ where: { email } });
+```
+
+### XSS — Input Sanitization
+```bash
+npm install dompurify jsdom validator
+```
+```javascript
+import validator from 'validator';
+
+// Sanitize text input
+const safeName = validator.escape(req.body.name);
+
+// If rendering HTML (React does this automatically via JSX)
+// Never use dangerouslySetInnerHTML without DOMPurify:
+import DOMPurify from 'dompurify';
+const clean = DOMPurify.sanitize(userHtml);
+```
+
+### CSRF Protection
+```bash
+npm install csurf cookie-parser
+```
+```javascript
+import csrf from 'csurf';
+import cookieParser from 'cookie-parser';
+
+app.use(cookieParser());
+app.use(csrf({ cookie: { httpOnly: true, secure: true, sameSite: 'Strict' } }));
+
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+```
+```javascript
+// React client — include token in every mutating request:
+const { data } = await axios.get('/api/csrf-token');
+axios.defaults.headers.common['X-CSRF-Token'] = data.csrfToken;
+```
+
+### DDoS / Rate Limiting
+```javascript
+// Global API rate limit
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: 'Too many requests',
+});
+app.use('/api/', globalLimiter);
+
+// Stricter limit for auth routes
+const authLimiter = rateLimit({ windowMs: 900000, max: 5 });
+app.use('/api/auth/', authLimiter);
+```
+
+### Malicious File Upload Protection
+```bash
+npm install multer file-type sharp
+```
+```javascript
+import multer from 'multer';
+import { fileTypeFromBuffer } from 'file-type';
+import path from 'path';
+
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_SIZE },
+  fileFilter: (req, file, cb) => {
+    // Check MIME type (not just extension)
+    if (!ALLOWED_TYPES.includes(file.mimetype)) {
+      return cb(new Error('Invalid file type'));
+    }
+    cb(null, true);
+  },
+});
+
+// After upload, verify magic bytes:
+app.post('/upload', upload.single('file'), async (req, res) => {
+  const type = await fileTypeFromBuffer(req.file.buffer);
+  if (!type || !ALLOWED_TYPES.includes(type.mime)) {
+    return res.status(400).json({ error: 'Invalid file content' });
+  }
+  // Store in S3/cloud, NOT in public directory
+  // Never store uploads in /public folder
+});
+```
+
+---
+
+## 6. 🦠 Malware Scanning Setup
+
+### For Render (Linux-based containers) — ClamAV
+```bash
+# In your Dockerfile or build script:
+apt-get install clamav clamav-daemon -y
+freshclam  # Update virus definitions
+
+# Scan command:
+clamscan -r /app --infected --remove --log=/var/log/clamav/scan.log
+```
+
+### Cron Job for Daily Scans (self-hosted)
+```bash
+crontab -e
+# Add:
+0 2 * * * clamscan -r /var/www/html --infected --log=/var/log/clamav/daily.log && \
+  mail -s "ClamAV Scan Report" your@email.com < /var/log/clamav/daily.log
+```
+
+### For Vercel/Render (Cloud-based) — Use External Services
+- **Sucuri SiteCheck**: Free online scanner → [sitecheck.sucuri.net](https://sitecheck.sucuri.net)
+- **VirusTotal API**: Scan uploaded files server-side
+
+```javascript
+// Scan uploads with VirusTotal API
+import FormData from 'form-data';
+import fetch from 'node-fetch';
+
+async function scanWithVirusTotal(fileBuffer, filename) {
+  const form = new FormData();
+  form.append('file', fileBuffer, filename);
+  const res = await fetch('https://www.virustotal.com/api/v3/files', {
+    method: 'POST',
+    headers: { 'x-apikey': process.env.VIRUSTOTAL_API_KEY },
+    body: form,
+  });
+  return await res.json();
+}
+```
+
+### Email Alerts with Nodemailer
+```javascript
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: { user: process.env.ALERT_EMAIL, pass: process.env.ALERT_PASS },
+});
+
+export async function sendSecurityAlert(subject, message) {
+  await transporter.sendMail({
+    from: process.env.ALERT_EMAIL,
+    to: 'admin@yourdomain.com',
+    subject: `🚨 Security Alert: ${subject}`,
+    text: message,
+  });
+}
+```
+
+---
+
+## 7. 💾 Automated Backup System
+
+### Database Backup (Aiven → S3)
+```bash
+npm install @aws-sdk/client-s3
+```
+```javascript
+// scripts/backup-db.js
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import fs from 'fs';
+
+const execAsync = promisify(exec);
+const s3 = new S3Client({ region: process.env.AWS_REGION });
+
+async function backupDatabase() {
+  const filename = `backup-${new Date().toISOString().split('T')[0]}.sql`;
+  
+  // Dump from Aiven PostgreSQL
+  await execAsync(
+    `pg_dump "${process.env.DATABASE_URL}" > /tmp/${filename}`
+  );
+
+  // Upload to S3
+  const fileStream = fs.createReadStream(`/tmp/${filename}`);
+  await s3.send(new PutObjectCommand({
+    Bucket: process.env.BACKUP_BUCKET,
+    Key: `db-backups/${filename}`,
+    Body: fileStream,
+  }));
+
+  // Cleanup
+  fs.unlinkSync(`/tmp/${filename}`);
+  console.log(`✅ Backup ${filename} uploaded to S3`);
+}
+
+backupDatabase().catch(console.error);
+```
+
+### Cron Job Setup (node-cron)
+```bash
+npm install node-cron
+```
+```javascript
+import cron from 'node-cron';
+import { backupDatabase } from './scripts/backup-db.js';
+
+// Run daily at 2 AM UTC
+cron.schedule('0 2 * * *', async () => {
+  console.log('Running scheduled backup...');
+  await backupDatabase();
+});
+```
+
+### 30-Day Retention Policy (S3 Lifecycle Rule)
+In AWS Console → S3 → Your Bucket → Management → Lifecycle Rules:
+- Rule: Delete objects in `db-backups/` older than **30 days**
+
+Or via AWS CLI:
+```bash
+aws s3api put-bucket-lifecycle-configuration \
+  --bucket your-backup-bucket \
+  --lifecycle-configuration '{
+    "Rules": [{
+      "ID": "delete-old-backups",
+      "Filter": {"Prefix": "db-backups/"},
+      "Status": "Enabled",
+      "Expiration": {"Days": 30}
+    }]
+  }'
+```
+
+### Aiven Built-in Backups
+- Aiven automatically backs up your database daily
+- Go to **Aiven Console → Your Service → Backups**
+- Enable **Point-in-Time Recovery (PITR)** for PostgreSQL
+
+---
+
+## 8. 🔰 Security HTTP Headers
+
+### Node.js/Express (Render) — Use Helmet.js
+```bash
+npm install helmet
+```
+```javascript
+import helmet from 'helmet';
+
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https://your-api.onrender.com"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  frameguard: { action: 'deny' },
+  noSniff: true,
+  xssFilter: true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+}));
+```
+
+### Vercel (vercel.json) — Add Headers for Client/Admin
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self)" },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://your-api.onrender.com"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Apache (.htaccess)
+```apache
+Header always set X-Frame-Options "DENY"
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';"
+```
+
+### Nginx (nginx.conf)
+```nginx
+add_header X-Frame-Options "DENY" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline';" always;
+```
+
+---
+
+## 9. 🔄 Keeping Software Updated
+
+### Node.js Dependencies (Render)
+```bash
+# Check for vulnerabilities
+npm audit
+npm audit fix
+
+# Update all dependencies
+npx npm-check-updates -u
+npm install
+
+# Add to CI/CD pipeline (GitHub Actions):
+```
+
+```yaml
+# .github/workflows/security-audit.yml
+name: Security Audit
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday 6 AM
+  push:
+    branches: [main]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: npm ci
+      - run: npm audit --audit-level=high
+```
+
+### Ubuntu/Debian Unattended Upgrades (self-hosted)
+```bash
+sudo apt install unattended-upgrades apt-listchanges -y
+sudo dpkg-reconfigure -plow unattended-upgrades
+
+sudo nano /etc/apt/apt.conf.d/50unattended-upgrades
+```
+```
+Unattended-Upgrade::Allowed-Origins {
+  "${distro_id}:${distro_codename}-security";
+};
+Unattended-Upgrade::Mail "your@email.com";
+Unattended-Upgrade::Automatic-Reboot "false";
+```
+
+### Dependabot (GitHub) — Auto PR for Dependency Updates
+```yaml
+# .github/dependabot.yml
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/client"
+    schedule: { interval: "weekly" }
+  - package-ecosystem: "npm"
+    directory: "/server"
+    schedule: { interval: "weekly" }
+  - package-ecosystem: "npm"
+    directory: "/admin"
+    schedule: { interval: "weekly" }
+```
+
+---
+
+## 10. 🔍 Security Audit & Monitoring
+
+### Run OWASP ZAP Scan
+```bash
+# Using Docker:
+docker pull ghcr.io/zaproxy/zaproxy:stable
+docker run -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+  -t https://yourdomain.com -r zap-report.html
+```
+
+### Run Nikto Scan
+```bash
+sudo apt install nikto -y
+nikto -h https://yourdomain.com -output nikto-report.txt
+```
+
+### Check SSL/TLS Configuration
+```bash
+# Test SSL grade (should be A+):
+curl -s "https://api.ssllabs.com/api/v3/analyze?host=yourdomain.com&publish=off&all=done" | jq '.endpoints[0].grade'
+```
+
+### Real-Time Monitoring with Morgan + Winston (Node.js)
+```bash
+npm install morgan winston winston-daily-rotate-file
+```
+```javascript
+import winston from 'winston';
+import morgan from 'morgan';
+
+const logger = winston.createLogger({
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.DailyRotateFile({
+      filename: 'logs/access-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      maxFiles: '30d',
+    }),
+  ],
+});
+
+// Log suspicious activity
+app.use(morgan('combined', {
+  stream: { write: (message) => logger.info(message.trim()) },
+}));
+
+// Alert on repeated 401s (brute force detection)
+const failedAttempts = new Map();
+app.use((req, res, next) => {
+  res.on('finish', () => {
+    if (res.statusCode === 401) {
+      const ip = req.ip;
+      const count = (failedAttempts.get(ip) || 0) + 1;
+      failedAttempts.set(ip, count);
+      if (count >= 5) {
+        sendSecurityAlert('Brute Force Detected', `IP ${ip} failed 5+ logins`);
+      }
+    }
+  });
+  next();
+});
+```
+
+### Intrusion Detection with OSSEC (self-hosted)
+```bash
+wget https://github.com/ossec/ossec-hids/archive/3.7.0.tar.gz
+tar -zxf 3.7.0.tar.gz && cd ossec-hids-3.7.0
+sudo ./install.sh
+# Choose "local" installation, enter your email for alerts
+sudo /var/ossec/bin/ossec-control start
+```
+
+### Uptime Monitoring (Free Tools)
+- **UptimeRobot** — monitors every 5 mins, alerts via email/SMS
+- **BetterUptime** — incident management + on-call alerts
+- **Render** built-in — check Render dashboard for health checks
+
+### Security Headers Check
+```bash
+# Verify your headers are correctly set:
+curl -I https://yourdomain.com
+# Or use: https://securityheaders.com
+```
+
+---
+
+## 🚨 AIVEN DATABASE SECURITY (Critical)
+
+```bash
+# 1. Enable SSL for all connections (Aiven does this by default)
+# 2. Allowlist only Render's outbound IPs in Aiven firewall:
+#    Aiven Console → Service → Networking → IP Filter
+
+# 3. Use environment variables — NEVER hardcode credentials:
+DATABASE_URL=postgresql://user:pass@host:port/db?sslmode=require
+
+# 4. Create read-only DB users for reporting:
+CREATE USER readonly_user WITH PASSWORD 'strong_pass';
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO readonly_user;
+
+# 5. Enable Aiven audit logs:
+#    Aiven Console → Logs → Enable audit logging
+```
+
+---
+
+## ✅ TOP 10 CRITICAL ACTIONS — Take Immediately
+
+| Priority | Action | Platform | Time Required |
+|----------|--------|----------|---------------|
+| **1** | Add `vercel.json` security headers to client & admin | Vercel | 10 min |
+| **2** | Install `helmet` on your Node.js server | Render | 5 min |
+| **3** | Set up Cloudflare WAF in front of your domain | Cloudflare | 30 min |
+| **4** | Add rate limiting with `express-rate-limit` on all API routes | Render | 15 min |
+| **5** | Ensure ALL secrets are in `.env` files — audit for hardcoded creds | All | 20 min |
+| **6** | Enable Dependabot in GitHub for auto dependency updates | GitHub | 5 min |
+| **7** | Set up `npm audit` in your CI/CD pipeline | GitHub Actions | 15 min |
+| **8** | Configure Aiven IP allowlist to only permit Render IPs | Aiven | 10 min |
+| **9** | Add CSRF protection + validate all user inputs server-side | Render | 30 min |
+| **10** | Enable 2FA on Vercel, Render, Aiven, GitHub, and Cloudflare accounts | All dashboards | 15 min |
+
+---
+
+## 🔧 Environment Variables Security Checklist
+
+```bash
+# .env — NEVER commit this file
+# Ensure .gitignore includes:
+.env
+.env.local
+.env.production
+*.pem
+*.key
+
+# Required secure env vars:
+NODE_ENV=production
+DATABASE_URL=postgresql://...?sslmode=require
+JWT_SECRET=<64+ random chars>
+HCAPTCHA_SECRET=...
+VIRUSTOTAL_API_KEY=...
+BACKUP_BUCKET=...
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+
+# Generate strong secrets:
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+---
+
+## 📊 Verify Security Score
+
+After implementation, run these checks:
+- **SSL**: [ssllabs.com/ssltest](https://www.ssllabs.com/ssltest/) — target **A+**
+- **Headers**: [securityheaders.com](https://securityheaders.com) — target **A+**
+- **Observatory**: [observatory.mozilla.org](https://observatory.mozilla.org) — target **A+**
+- **CSP**: [csp-evaluator.withgoogle.com](https://csp-evaluator.withgoogle.com)
+
+---
+
+*Guide tailored for: React (Vercel) + Node.js (Render) + Aiven | Generated: April 2026*

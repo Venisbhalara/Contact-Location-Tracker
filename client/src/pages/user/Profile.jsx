@@ -16,10 +16,10 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("general");
   // Per-form independent loading & saved states
   const [profileLoading, setProfileLoading] = useState(false);
-  const [profileSaved, setProfileSaved]     = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordSaved, setPasswordSaved]     = useState(false);
-  const [deleteLoading, setDeleteLoading]   = useState(false);
+  const [passwordSaved, setPasswordSaved] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -97,7 +97,11 @@ export default function Profile() {
       });
       setPasswordSaved(true);
       toast.success("Password updated!");
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
       setTimeout(() => setPasswordSaved(false), 2500);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to update password");
@@ -238,7 +242,11 @@ export default function Profile() {
                     />
                   </div>
                   <div className="pt-4">
-                    <SaveButton loading={profileLoading} saved={profileSaved} label="Save Changes" />
+                    <SaveButton
+                      loading={profileLoading}
+                      saved={profileSaved}
+                      label="Save Changes"
+                    />
                   </div>
                 </form>
               </div>
@@ -300,7 +308,12 @@ export default function Profile() {
                     />
                   </div>
                   <div className="pt-2">
-                    <SaveButton loading={passwordLoading} saved={passwordSaved} label="Update Password" variant="secondary" />
+                    <SaveButton
+                      loading={passwordLoading}
+                      saved={passwordSaved}
+                      label="Update Password"
+                      variant="secondary"
+                    />
                   </div>
                 </form>
 
@@ -349,7 +362,11 @@ export default function Profile() {
                     />
                   </div>
 
-                  <SaveButton loading={profileLoading} saved={profileSaved} label="Save Preferences" />
+                  <SaveButton
+                    loading={profileLoading}
+                    saved={profileSaved}
+                    label="Save Preferences"
+                  />
                 </form>
               </div>
             )}
@@ -396,8 +413,13 @@ export default function Profile() {
                       className="w-full px-6 py-2.5 bg-red-600/80 hover:bg-red-500 text-white rounded-lg font-medium transition-all disabled:opacity-50 border border-red-500/50 flex items-center justify-center gap-2"
                     >
                       {deleteLoading ? (
-                        <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Processing...</>
-                      ) : "Permanently Delete Account"}
+                        <>
+                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Permanently Delete Account"
+                      )}
                     </button>
                   </form>
                 </div>
@@ -425,21 +447,49 @@ export default function Profile() {
   );
 }
 
-
 // ─── Premium Save Button with spinner + green check ───────────────────────────
 const SaveButton = ({ loading, saved, label, variant = "primary" }) => {
-  const base = "inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all duration-200 disabled:opacity-60 focus:outline-none";
+  const base =
+    "inline-flex items-center gap-2 px-6 py-2.5 rounded-lg font-medium transition-all duration-200 disabled:opacity-60 focus:outline-none";
   const styles = {
     primary: `${base} bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/30`,
     secondary: `${base} bg-slate-700 hover:bg-slate-600 text-white`,
   };
   return (
-    <button type="submit" disabled={loading || saved} className={saved ? `${styles[variant]} !bg-green-600 !shadow-green-500/30` : styles[variant]}>
+    <button
+      type="submit"
+      disabled={loading || saved}
+      className={
+        saved
+          ? `${styles[variant]} !bg-green-600 !shadow-green-500/30`
+          : styles[variant]
+      }
+    >
       {loading ? (
-        <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />{label}</>
+        <>
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          {label}
+        </>
       ) : saved ? (
-        <><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Saved!</>
-      ) : label}
+        <>
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={3}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          Saved!
+        </>
+      ) : (
+        label
+      )}
     </button>
   );
 };

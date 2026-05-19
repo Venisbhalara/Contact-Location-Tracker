@@ -51,4 +51,8 @@ export const getAdminUserCredentials = (data) => API.post('/admin/user-credentia
 export const requestAccess = (data) => API.post('/access/request', data);
 export const getAccessStatus = () => API.get('/access/status');
 
+// Payments
+export const createPaymentOrder = (data) => API.post('/payment/create-order', data);
+export const verifyPayment = (data) => API.post('/payment/verify', data);
+
 export default API;

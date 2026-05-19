@@ -18,7 +18,7 @@ const GoogleIcon = () => (
 /* ── Field component ─────────────────────────────────────────────── */
 const Field = ({ label, name, type = "text", placeholder, value, onChange, required = true }) => (
   <div className="flex flex-col gap-1.5">
-    <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.45)" }}>
+    <label className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>
       {label}
     </label>
     <input
@@ -28,19 +28,13 @@ const Field = ({ label, name, type = "text", placeholder, value, onChange, requi
       placeholder={placeholder}
       value={value}
       onChange={onChange}
-      className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none transition-all duration-200"
+      className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none transition-all duration-300 shadow-inner"
       style={{
-        background: "rgba(0,0,0,0.45)",
+        background: "rgba(0,0,0,0.3)",
         border: "1px solid rgba(255,255,255,0.08)",
       }}
-      onFocus={e => {
-        e.target.style.border = "1px solid rgba(99,102,241,0.6)";
-        e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12), 0 0 20px rgba(99,102,241,0.08)";
-      }}
-      onBlur={e => {
-        e.target.style.border = "1px solid rgba(255,255,255,0.08)";
-        e.target.style.boxShadow = "none";
-      }}
+      onFocus={e => e.target.style.borderColor = "rgba(99,102,241,0.5)"}
+      onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.08)"}
     />
   </div>
 );
@@ -49,7 +43,7 @@ const Field = ({ label, name, type = "text", placeholder, value, onChange, requi
 const OrDivider = () => (
   <div className="flex items-center gap-4">
     <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-    <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.3)" }}>or</span>
+    <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.2)" }}>OR</span>
     <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
   </div>
 );
@@ -60,19 +54,19 @@ const GoogleButton = ({ onClick, loading, label }) => (
     type="button"
     onClick={onClick}
     disabled={loading}
-    className="flex items-center justify-center gap-3 w-full px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 group disabled:opacity-50"
+    className="flex items-center justify-center gap-3 w-full px-4 py-4 rounded-xl font-bold text-sm transition-all duration-300 group disabled:opacity-50"
     style={{
-      background: "rgba(255,255,255,0.04)",
-      border: "1px solid rgba(255,255,255,0.1)",
+      background: "rgba(255,255,255,0.03)",
+      border: "1px solid rgba(255,255,255,0.08)",
       color: "#e2e8f0",
     }}
     onMouseEnter={e => {
-      e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-      e.currentTarget.style.border = "1px solid rgba(255,255,255,0.18)";
+      e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+      e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
     }}
     onMouseLeave={e => {
-      e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-      e.currentTarget.style.border = "1px solid rgba(255,255,255,0.1)";
+      e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+      e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
     }}
   >
     <div className="bg-white p-1 rounded-full group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
@@ -86,7 +80,11 @@ const GoogleButton = ({ onClick, loading, label }) => (
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ 
+    email: localStorage.getItem("rememberedEmail") || "", 
+    password: "" 
+  });
+  const [rememberMe, setRememberMe] = useState(!!localStorage.getItem("rememberedEmail"));
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
 
@@ -97,11 +95,19 @@ const Login = () => {
     setLoading(true);
     try {
       const res = await loginUser(form);
+      
+      if (rememberMe) {
+        localStorage.setItem("rememberedEmail", form.email);
+      } else {
+        localStorage.removeItem("rememberedEmail");
+      }
+
       login(res.data.user, res.data.token);
       toast.success(`Welcome back, ${res.data.user.name}!`);
       navigate("/dashboard");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed.");
+      console.error("Login error:", err);
+      toast.error(err.response?.data?.message || "Invalid email or password. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -116,6 +122,7 @@ const Login = () => {
         toast.success(`Welcome back, ${res.data.user.name}!`);
         navigate("/dashboard");
       } catch (err) {
+        console.error("Google login error:", err);
         toast.error(err.response?.data?.message || "Google login failed.");
       } finally {
         setLoading(false);
@@ -142,34 +149,33 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-md">
 
         {/* Header */}
-        <div className="text-center mb-8">
-          {/* Logo mark */}
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-5 shadow-2xl"
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl mb-6 shadow-2xl"
             style={{
               background: "linear-gradient(135deg, #6366f1, #a855f7)",
-              boxShadow: "0 0 40px rgba(99,102,241,0.4)",
+              boxShadow: "0 0 50px rgba(99,102,241,0.4)",
             }}
           >
-            <img src="/location.png" alt="NexTrack Logo" className="w-10 h-10 object-contain drop-shadow-lg" />
+            <img src="/location.png" alt="NexTrack Logo" className="w-12 h-12 object-contain drop-shadow-lg" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight mb-1">Welcome back</h1>
-          <p className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>
+          <h1 className="text-4xl font-black text-white tracking-tight mb-2">Welcome Back</h1>
+          <p className="text-slate-500 font-medium tracking-wide">
             Sign in to your NexTrack account
           </p>
         </div>
 
         {/* Card */}
         <div
-          className="rounded-2xl p-8"
+          className="rounded-[2.5rem] p-10"
           style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(24px)",
-            boxShadow: "0 32px 80px rgba(0,0,0,0.5)",
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            backdropFilter: "blur(40px)",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
           }}
         >
           {/* Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             <Field
               label="Email address"
               name="email"
@@ -179,72 +185,80 @@ const Login = () => {
               onChange={handleChange}
             />
 
-            {/* Password with show/hide */}
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.45)" }}>
+                <label className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: "rgba(255,255,255,0.4)" }}>
                   Password
                 </label>
+                <Link to="/forgot-password" title="Coming soon" className="text-[10px] font-bold uppercase tracking-[0.05em] text-indigo-400/80 hover:text-indigo-400 transition-colors">
+                  Forgot?
+                </Link>
+              </div>
+              <div className="relative group">
+                <input
+                  name="password"
+                  type={showPw ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none transition-all duration-300 shadow-inner"
+                  style={{
+                    background: "rgba(0,0,0,0.3)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    letterSpacing: form.password && !showPw ? "0.4em" : "normal",
+                  }}
+                  onFocus={e => e.target.style.borderColor = "rgba(99,102,241,0.5)"}
+                  onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.08)"}
+                />
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="text-xs transition-colors duration-200"
-                  style={{ color: "rgba(163,166,255,0.7)" }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                 >
-                  {showPw ? "Hide" : "Show"}
+                  {showPw ? (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 1.274-4.057 5.064-7 9.542-7 1.254 0 2.415.283 3.456.784m1.56 1.56a9.456 9.456 0 013.458 4.656C20.268 15.057 16.477 18 12 18c-.453 0-.895-.034-1.328-.101M3 3l18 18" /></svg>
+                  )}
                 </button>
               </div>
-              <input
-                name="password"
-                type={showPw ? "text" : "password"}
-                required
-                placeholder="••••••••"
-                value={form.password}
-                onChange={handleChange}
-                className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-600 outline-none transition-all duration-200"
-                style={{
-                  background: "rgba(0,0,0,0.45)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  letterSpacing: form.password && !showPw ? "0.2em" : "normal",
-                }}
-                onFocus={e => {
-                  e.target.style.border = "1px solid rgba(99,102,241,0.6)";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12), 0 0 20px rgba(99,102,241,0.08)";
-                }}
-                onBlur={e => {
-                  e.target.style.border = "1px solid rgba(255,255,255,0.08)";
-                  e.target.style.boxShadow = "none";
-                }}
-              />
             </div>
 
-            {/* Submit */}
+            <div className="flex items-center gap-2 px-1">
+              <input 
+                type="checkbox" 
+                id="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer"
+              />
+              <label htmlFor="remember" className="text-xs text-slate-400 select-none cursor-pointer hover:text-slate-300 transition-colors">
+                Remember my email
+              </label>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl font-semibold text-sm text-white transition-all duration-300 mt-2 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-xl font-bold text-sm text-white transition-all duration-500 mt-2 disabled:opacity-50 flex items-center justify-center gap-3 active:scale-[0.98]"
               style={{
-                background: loading ? "rgba(99,102,241,0.5)" : "linear-gradient(135deg, #6366f1, #a855f7)",
-                boxShadow: loading ? "none" : "0 0 24px rgba(99,102,241,0.4)",
+                background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5)",
               }}
-              onMouseEnter={e => { if (!loading) e.currentTarget.style.boxShadow = "0 0 36px rgba(99,102,241,0.6)"; }}
-              onMouseLeave={e => { if (!loading) e.currentTarget.style.boxShadow = "0 0 24px rgba(99,102,241,0.4)"; }}
             >
               {loading ? (
-                <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Signing in...
-                </>
+                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
               ) : (
-                "Sign In"
+                <>
+                  Sign In
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                </>
               )}
             </button>
           </form>
 
-          <div className="my-6">
+          <div className="my-10">
             <OrDivider />
           </div>
 
@@ -254,24 +268,16 @@ const Login = () => {
             label="Continue with Google"
           />
 
-          {/* Footer link */}
-          <p className="text-center text-sm mt-6" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-center text-sm mt-10 text-slate-500 font-medium">
             Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="font-semibold transition-colors duration-200"
-              style={{ color: "#a3a6ff" }}
-              onMouseEnter={e => e.currentTarget.style.color = "#c180ff"}
-              onMouseLeave={e => e.currentTarget.style.color = "#a3a6ff"}
-            >
+            <Link to="/register" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors">
               Create one
             </Link>
           </p>
         </div>
 
-        {/* Trust note */}
-        <p className="text-center text-xs mt-6" style={{ color: "rgba(255,255,255,0.2)" }}>
-          🔒 Secured with end-to-end encryption
+        <p className="text-center text-[10px] mt-10 text-slate-600 uppercase tracking-widest font-bold">
+          🛡️ Secure & Encrypted Infrastructure
         </p>
       </div>
     </div>

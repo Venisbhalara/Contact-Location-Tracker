@@ -17,6 +17,7 @@ const PrivacyPolicy  = lazy(() => import('./pages/legal/PrivacyPolicy'))
 const Terms          = lazy(() => import('./pages/legal/Terms'))
 const About          = lazy(() => import('./pages/public/About'))
 const Contact        = lazy(() => import('./pages/public/Contact'))
+const Pricing        = lazy(() => import('./pages/public/Pricing'))
 
 // ── Components (always needed, kept eager) ────────────────────────────────────
 import Navbar         from './components/layout/Navbar'
@@ -98,6 +99,7 @@ function App() {
           <Route path="/terms"          element={<Terms />} />
           <Route path="/about"          element={<About />} />
           <Route path="/contact"        element={<Contact />} />
+          <Route path="/pricing"        element={<Pricing />} />
 
           {/* Protected */}
           <Route element={<ProtectedRoute />}>

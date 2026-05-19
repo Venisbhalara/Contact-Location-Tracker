@@ -24,6 +24,15 @@ const logActivity = require("../utils/activityLogger");
       return res.status(404).json({ message: "User not found." });
     }
 
+    // --- CHECK BALANCE ---
+    if (user.trackingBalance <= 0) {
+      return res.status(403).json({ 
+        message: "Insufficient tracking balance. Please recharge your plan.",
+        code: "INSUFFICIENT_BALANCE" 
+      });
+    }
+    // ---------------------
+
     // Generate a unique UUID token
     const token = uuidv4();
 
@@ -44,6 +53,11 @@ const logActivity = require("../utils/activityLogger");
       status: initialStatus,
       expiresAt,
     });
+
+    // --- DECREMENT BALANCE ---
+    user.trackingBalance -= 1;
+    await user.save();
+    // -------------------------
 
     await logActivity(req.app.get("io"), {
       type: "tracking_start",
@@ -88,6 +102,7 @@ const logActivity = require("../utils/activityLogger");
       trackingLink,
       token,
       tracking,
+      newBalance: user.trackingBalance,
       requiresApproval: !user.trackingAccess,
     });
   } catch (error) {

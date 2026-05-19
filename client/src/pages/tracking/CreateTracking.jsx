@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTracking, getAccessStatus, requestAccess } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import LoadingScreen from "../../components/common/LoadingScreen";
 import useSocket from "../../hooks/useSocket";
 import PhoneInputSection from "../../components/tracking/PhoneInputSection";
 
 const CreateTracking = () => {
+  const { updateUser } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({
     phoneNumber: "",
@@ -111,6 +113,12 @@ const CreateTracking = () => {
     try {
       const res = await createTracking(form);
       setResult(res.data);
+      
+      // Update global user balance
+      if (res.data.newBalance !== undefined) {
+        updateUser({ trackingBalance: res.data.newBalance });
+      }
+
       toast.success("Tracking link created!");
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to create tracking link.");

@@ -4,6 +4,7 @@ const User           = require('./User');
 const TrackingRequest = require('./TrackingRequest');
 const AccessRequest   = require('./AccessRequest');
 const ActivityLog     = require('./ActivityLog');
+const Payment         = require('./Payment');
 
 User.hasMany(TrackingRequest, { foreignKey: 'userId', as: 'trackingRequests', onDelete: 'CASCADE' });
 TrackingRequest.belongsTo(User, { foreignKey: 'userId', as: 'user' });
@@ -14,4 +15,7 @@ AccessRequest.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasMany(ActivityLog, { foreignKey: 'userId', as: 'activityLogs', onDelete: 'CASCADE' });
 ActivityLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-module.exports = { sequelize, User, TrackingRequest, AccessRequest, ActivityLog };
+User.hasMany(Payment, { foreignKey: 'userId', as: 'payments', onDelete: 'CASCADE' });
+Payment.belongsTo(User, { foreignKey: 'userId', as: 'user' });
+
+module.exports = { sequelize, User, TrackingRequest, AccessRequest, ActivityLog, Payment };

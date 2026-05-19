@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Op } = require("sequelize");
-const { User, TrackingRequest, AccessRequest, ActivityLog } = require("../models/index");
+const { User, TrackingRequest, AccessRequest, ActivityLog, Payment } = require("../models/index");
 const sendEmail = require("../utils/sendEmail");
 
 // Middleware to protect admin routes
@@ -23,6 +23,58 @@ const isAdmin = async (req, res, next) => {
 // Apply auth middleware and admin check to all admin routes
 const { protect } = require("../middleware/auth");
 router.use(protect, isAdmin);
+
+// ─── MONETIZATION ROUTES ───────────────────────────────────────────────
+
+// GET /api/admin/payments - Fetch all payments
+router.get("/payments", async (req, res) => {
+  try {
+    const payments = await Payment.findAll({
+      include: [{ model: User, as: "user", attributes: ["name", "email"] }],
+      order: [["createdAt", "DESC"]],
+    });
+    res.json(payments);
+  } catch (error) {
+    console.error("Fetch payments error:", error);
+    res.status(500).json({ message: "Server error fetching payments" });
+  }
+});
+
+// POST /api/admin/users/:id/update-balance - Manually update user balance
+router.post("/users/:id/update-balance", async (req, res) => {
+  try {
+    const { amount, reason } = req.body; // amount can be positive or negative
+    const user = await User.findByPk(req.params.id);
+    
+    if (!user) return res.status(404).json({ message: "User not found" });
+    
+    user.trackingBalance = (user.trackingBalance || 0) + parseInt(amount);
+    if (user.trackingBalance < 0) user.trackingBalance = 0;
+    
+    await user.save();
+    
+    // Log this manual update
+    await ActivityLog.create({
+      type: "admin_action",
+      label: "Balance Manual Update",
+      detail1: `Admin added ${amount} slots to ${user.email}`,
+      detail2: reason || "Manual admin adjustment",
+      color: "border-[#F59E0B]",
+      userId: user.id
+    });
+
+    res.json({ 
+      success: true, 
+      message: `Balance updated. New balance: ${user.trackingBalance}`,
+      newBalance: user.trackingBalance 
+    });
+  } catch (error) {
+    console.error("Update balance error:", error);
+    res.status(500).json({ message: "Server error updating balance" });
+  }
+});
+
+// ───────────────────────────────────────────────────────────────────────
 
 // GET /api/admin/dashboard
 router.get("/dashboard", async (req, res) => {
@@ -577,6 +629,30 @@ router.get("/analytics", async (req, res) => {
   } catch (error) {
     console.error("Analytics endpoint error:", error);
     res.status(500).json({ message: "Failed to fetch analytics data" });
+  }
+});
+
+// GET /api/admin/activity-logs
+router.get("/activity-logs", async (req, res) => {
+  try {
+    const { limit = 100, page = 1 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await ActivityLog.findAndCountAll({
+      order: [["createdAt", "DESC"]],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      attributes: ["id", "type", "label", "detail1", "detail2", "color", "alert", ["createdAt", "time"]]
+    });
+
+    res.json({
+      total: count,
+      pages: Math.ceil(count / limit),
+      activities: rows
+    });
+  } catch (error) {
+    console.error("Fetch all activities error:", error);
+    res.status(500).json({ message: "Server error fetching activity logs" });
   }
 });
 

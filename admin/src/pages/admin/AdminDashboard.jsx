@@ -1,6 +1,10 @@
 import { useState, useEffect, memo, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { getAdminDashboard, getAdminUserCredentials } from "../../services/api";
+import {
+  getAdminDashboard,
+  getAdminUserCredentials,
+  getAdminActivityLogs,
+} from "../../services/api";
 import LoadingScreen from "../../components/common/LoadingScreen";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +39,7 @@ import {
   ChevronRight,
   LockKeyhole,
   RefreshCw,
+  CreditCard,
 } from "lucide-react";
 
 // --- Dynamic Dashboard Logic ---
@@ -107,6 +112,13 @@ const AdminDashboard = () => {
   const [credentials, setCredentials] = useState(null);
   const [credLoading, setCredLoading] = useState(false);
 
+  // All Activity Modal State
+  const [showAllActivityModal, setShowAllActivityModal] = useState(false);
+  const [allActivities, setAllActivities] = useState([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
+  const [activitiesPage, setActivitiesPage] = useState(1);
+  const [hasMoreActivities, setHasMoreActivities] = useState(true);
+
   // Security Lockout State
   const [failedAttempts, setFailedAttempts] = useState(() => {
     return parseInt(localStorage.getItem("admin_cred_attempts") || "0");
@@ -119,7 +131,7 @@ const AdminDashboard = () => {
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
-    if (showCredModal) {
+    if (showCredModal || showAllActivityModal) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "unset";
@@ -127,7 +139,7 @@ const AdminDashboard = () => {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [showCredModal]);
+  }, [showCredModal, showAllActivityModal]);
 
   const fetchDashboard = async (showToast = false, isAuto = false) => {
     if (!isAuto) {
@@ -257,6 +269,29 @@ const AdminDashboard = () => {
     } finally {
       setCredLoading(false);
     }
+  };
+
+  const handleFetchAllActivities = async (page = 1) => {
+    if (page === 1) setActivitiesLoading(true);
+    try {
+      const res = await getAdminActivityLogs({ page, limit: 50 });
+      if (page === 1) {
+        setAllActivities(res.data.activities);
+      } else {
+        setAllActivities((prev) => [...prev, ...res.data.activities]);
+      }
+      setHasMoreActivities(page < res.data.pages);
+      setActivitiesPage(page);
+    } catch (err) {
+      toast.error("Failed to load activities");
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
+  const openActivityModal = () => {
+    setShowAllActivityModal(true);
+    handleFetchAllActivities(1);
   };
 
   const staggerContainer = {
@@ -508,8 +543,15 @@ const AdminDashboard = () => {
               </AnimatePresence>
             </div>
             <div className="p-3 border-t border-white/[0.06] text-center">
-              <button className="text-sm font-medium text-[#64748B] hover:text-white transition-colors">
-                View All Activity →
+              <button
+                onClick={openActivityModal}
+                className="text-sm font-medium text-[#64748B] hover:text-white transition-colors flex items-center justify-center gap-1 mx-auto group"
+              >
+                View All Activity
+                <ChevronRight
+                  size={14}
+                  className="group-hover:translate-x-0.5 transition-transform"
+                />
               </button>
             </div>
           </motion.div>
@@ -731,6 +773,14 @@ const AdminDashboard = () => {
               desc="Export usage data"
               color="#10B981"
             />
+            <ActionCard
+              to="/admin/monetization"
+              icon={CreditCard}
+              title="Monetization"
+              desc="Payments & User Balances"
+              color="#A855F7"
+              badge="PRICING"
+            />
           </div>
         </motion.div>
       </div>
@@ -748,7 +798,7 @@ const AdminDashboard = () => {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative"
+              className="rounded-2xl shadow-2xl w-full max-w-4xl h-fit max-h-[90vh] overflow-hidden flex flex-col relative pointer-events-auto"
               style={{
                 background: "#0d0d17",
                 border: "1px solid rgba(255,255,255,0.08)",
@@ -777,7 +827,7 @@ const AdminDashboard = () => {
                 </button>
               </div>
 
-              <div className="p-6 overflow-y-auto relative z-10 nice-scrollbar">
+              <div className="p-6 flex-1 min-h-0 overflow-y-auto relative z-10 nice-scrollbar pointer-events-auto">
                 {!credentials ? (
                   <form
                     onSubmit={handleFetchCredentials}
@@ -942,6 +992,135 @@ const AdminDashboard = () => {
                     </div>
                   </motion.div>
                 )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* --- ALL ACTIVITY MODAL --- */}
+      <AnimatePresence>
+        {showAllActivityModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080d1a]/80 backdrop-blur-xl"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col bg-[#0d0d17] border border-white/10 relative overflow-hidden pointer-events-auto"
+              style={{ maxHeight: "90vh", height: "auto" }}
+            >
+              {/* Modal Blur Accents */}
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none"></div>
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+              {/* Header - Fixed Height */}
+              <div className="p-6 border-b border-white/[0.06] flex justify-between items-center shrink-0 relative z-20 bg-black/40 backdrop-blur-md">
+                <div>
+                  <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                      <Activity className="text-indigo-400" size={20} />
+                    </div>
+                    System Activity Log
+                  </h2>
+                  <p className="text-xs text-[#64748B] mt-1 ml-13">
+                    Comprehensive history of all platform events
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAllActivityModal(false)}
+                  className="p-2 text-[#64748B] hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Scrollable Content - Flexible Height */}
+              <div
+                className="flex-1 overflow-y-auto p-6 relative z-10 nice-scrollbar pointer-events-auto"
+                style={{ minHeight: 0 }}
+              >
+                {activitiesLoading ? (
+                  <div className="flex flex-col items-center justify-center py-20 gap-4">
+                    <RefreshCw
+                      className="animate-spin text-indigo-400"
+                      size={40}
+                    />
+                    <p className="text-[#64748B] font-medium">
+                      Fetching activity logs...
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {allActivities.length === 0 ? (
+                      <div className="text-center py-20 text-[#64748B]">
+                        No activity logs found.
+                      </div>
+                    ) : (
+                      allActivities.map((event, i) => (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i < 20 ? i * 0.02 : 0 }}
+                          key={event.id || i}
+                          className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl hover:bg-white/[0.03] transition-all border-l-4 ${event.color} bg-white/[0.01] border-y border-r border-white/5`}
+                        >
+                          <div className="w-24 text-xs text-[#64748B] font-mono shrink-0">
+                            {new Date(event.time).toLocaleString([], {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                          <div className="w-40 text-sm font-bold text-white flex items-center gap-2">
+                            {event.alert && (
+                              <AlertCircle
+                                size={14}
+                                className="text-[#EF4444]"
+                              />
+                            )}
+                            {event.label}
+                          </div>
+                          <div className="flex-1 text-sm text-[#F1F5F9]">
+                            {event.detail1}
+                          </div>
+                          <div className="text-xs text-[#64748B] sm:text-right font-medium bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                            {event.detail2}
+                          </div>
+                        </motion.div>
+                      ))
+                    )}
+
+                    {hasMoreActivities && (
+                      <button
+                        onClick={() =>
+                          handleFetchAllActivities(activitiesPage + 1)
+                        }
+                        className="w-full py-4 mt-4 text-sm font-bold text-indigo-400 hover:text-white hover:bg-indigo-500/10 rounded-xl border border-dashed border-indigo-500/30 transition-all uppercase tracking-widest"
+                      >
+                        Load Older Activity
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Footer - Fixed Height */}
+              <div className="p-4 border-t border-white/[0.06] bg-black/40 backdrop-blur-md flex justify-between items-center shrink-0 relative z-20">
+                <p className="text-[10px] text-[#64748B] uppercase tracking-widest font-bold">
+                  Showing {allActivities.length} events
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
+                    Live Updates Active
+                  </span>
+                </div>
               </div>
             </motion.div>
           </motion.div>

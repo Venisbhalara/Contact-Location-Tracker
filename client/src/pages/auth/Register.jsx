@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { registerUser, googleLogin } from "../../services/api";
+import { registerUser, googleLogin, sendOtp } from "../../services/api";
 import { useGoogleLogin } from "@react-oauth/google";
 import toast from "react-hot-toast";
 
@@ -79,6 +79,85 @@ const GoogleButton = ({ onClick, loading, label }) => (
   </button>
 );
 
+/* ── OtpInput component ────────────────────────────────────────────── */
+const OtpInput = ({ length = 6, value, onChange }) => {
+  const inputs = useRef([]);
+  
+  const focusNext = (index) => {
+    if (index < length - 1 && inputs.current[index + 1]) {
+      inputs.current[index + 1].focus();
+    }
+  };
+  
+  const focusPrev = (index) => {
+    if (index > 0 && inputs.current[index - 1]) {
+      inputs.current[index - 1].focus();
+    }
+  };
+
+  const handleChange = (index, e) => {
+    const val = e.target.value.replace(/[^0-9]/g, '');
+    const newOtp = value.split('');
+    while(newOtp.length < length) newOtp.push('');
+    
+    newOtp[index] = val.slice(-1);
+    onChange(newOtp.join(''));
+    if (val) focusNext(index);
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      const newOtp = value.split('');
+      while(newOtp.length < length) newOtp.push('');
+      
+      if (newOtp[index]) {
+        newOtp[index] = '';
+        onChange(newOtp.join(''));
+      } else {
+        focusPrev(index);
+      }
+    } else if (e.key === 'ArrowLeft') {
+      focusPrev(index);
+    } else if (e.key === 'ArrowRight') {
+      focusNext(index);
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, length);
+    if (pastedData) {
+      onChange(pastedData);
+      const focusIndex = Math.min(pastedData.length, length - 1);
+      if (inputs.current[focusIndex]) inputs.current[focusIndex].focus();
+    }
+  };
+
+  return (
+    <div className="flex gap-2 justify-between w-full" onPaste={handlePaste}>
+      {Array.from({ length }).map((_, index) => (
+        <input
+          key={index}
+          ref={(el) => (inputs.current[index] = el)}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={value[index] || ''}
+          onChange={(e) => handleChange(index, e)}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          className="w-12 h-14 text-center text-2xl font-bold rounded-xl text-white outline-none transition-all duration-300 shadow-inner"
+          style={{
+            background: "rgba(0,0,0,0.4)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+          onFocus={e => e.target.style.borderColor = "rgba(99,102,241,0.5)"}
+          onBlur={e => e.target.style.borderColor = "rgba(255,255,255,0.1)"}
+        />
+      ))}
+    </div>
+  );
+};
+
 /* ══════════════════════════════════════════════════════════════════ */
 const Register = () => {
   const { login } = useAuth();
@@ -86,17 +165,36 @@ const Register = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     if (form.password.length < 6) return toast.error("Password must be at least 6 characters.");
     setLoading(true);
     try {
-      const res = await registerUser(form);
+      await sendOtp(form);
+      toast.success("OTP sent to your email!");
+      setShowOtpModal(true);
+    } catch (err) {
+      console.error("Send OTP error:", err);
+      toast.error(err.response?.data?.message || "Failed to send OTP.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otp) return toast.error("Please enter the OTP.");
+    setLoading(true);
+    try {
+      const res = await registerUser({ ...form, otp });
       login(res.data.user, res.data.token);
       toast.success("Account created successfully!");
+      setShowOtpModal(false);
       navigate("/dashboard");
     } catch (err) {
       console.error("Register error:", err);
@@ -178,7 +276,7 @@ const Register = () => {
           }}
         >
           {/* Form */}
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleSendOtp} className="flex flex-col gap-5">
             <Field
               label="Full name"
               name="name"
@@ -292,6 +390,52 @@ const Register = () => {
           🛡️ Trusted by users worldwide
         </p>
       </div>
+
+      {/* OTP Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowOtpModal(false)} />
+          <div 
+            className="relative w-full max-w-sm p-8 rounded-3xl"
+            style={{
+              background: "rgba(13, 13, 23, 0.95)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-bold text-white mb-2">Verify Email</h3>
+              <p className="text-sm text-slate-400">
+                We sent a code to <span className="text-white font-medium">{form.email}</span>
+              </p>
+            </div>
+            
+            <form onSubmit={handleVerifyOtp} className="flex flex-col gap-6">
+              <OtpInput value={otp} onChange={setOtp} />
+              
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 rounded-xl font-bold text-sm text-white transition-all duration-500 mt-2 disabled:opacity-50 active:scale-[0.98]"
+                style={{
+                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.5)",
+                }}
+              >
+                {loading ? "Verifying..." : "Verify & Register"}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setShowOtpModal(false)}
+                className="text-sm text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

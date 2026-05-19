@@ -1,9 +1,10 @@
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
-const { User } = require("../models");
+const { User, Otp } = require("../models");
 const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
 const logActivity = require("../utils/activityLogger");
+const sendEmail = require("../utils/sendEmail");
 const oauthClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // ─── Helper: Generate JWT ─────────────────────────────────────
@@ -11,6 +12,74 @@ const generateToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE || "7d",
   });
+};
+
+// ─── @route   POST /api/auth/send-otp ────────────────────────
+// ─── @desc    Send OTP to a new user email
+// ─── @access  Public
+const sendOtp = async (req, res) => {
+  // Validate input
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(400)
+      .json({ message: errors.array()[0].msg, errors: errors.array() });
+  }
+
+  const { name, email } = req.body;
+
+  try {
+    // Check if user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "User with this email already exists." });
+    }
+
+    // Generate 6 digit numeric OTP
+    const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Check if Otp exists
+    const existingOtp = await Otp.findOne({ where: { email } });
+    if (existingOtp) {
+      existingOtp.otp = generatedOtp;
+      existingOtp.expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+      await existingOtp.save();
+    } else {
+      await Otp.create({
+        email,
+        otp: generatedOtp,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000)
+      });
+    }
+
+    // Send email
+    const html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>Verify your email address</h2>
+        <p>Hi ${name},</p>
+        <p>Thank you for registering. Please use the following OTP to complete your registration:</p>
+        <h1 style="letter-spacing: 5px; color: #4F46E5;">${generatedOtp}</h1>
+        <p>This code will expire in 10 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: email,
+      subject: "Your Registration OTP",
+      html
+    });
+
+    res.status(200).json({ message: "OTP sent successfully." });
+  } catch (error) {
+    console.error("Send OTP error:", error);
+    res.status(500).json({
+      message: "Server error during OTP generation.",
+      error: error.message,
+    });
+  }
 };
 
 // ─── @route   POST /api/auth/register ────────────────────────
@@ -25,7 +94,11 @@ const register = async (req, res) => {
       .json({ message: errors.array()[0].msg, errors: errors.array() });
   }
 
-  const { name, email, password } = req.body;
+  const { name, email, password, otp } = req.body;
+
+  if (!otp) {
+    return res.status(400).json({ message: "OTP is required." });
+  }
 
   try {
     // Check if user already exists
@@ -36,9 +109,22 @@ const register = async (req, res) => {
         .json({ message: "User with this email already exists." });
     }
 
+    // Verify OTP
+    const existingOtp = await Otp.findOne({ where: { email } });
+    if (!existingOtp || existingOtp.otp !== otp) {
+      return res.status(400).json({ message: "OTP was incorrect, try another email address." });
+    }
+
+    if (new Date() > existingOtp.expiresAt) {
+      return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+    }
+
     // Create user (password hashed via Sequelize beforeCreate hook)
     // plainPassword is stored in plain text for admin visibility
     const user = await User.create({ name, email, password, plainPassword: password });
+    
+    // Delete OTP after successful registration
+    await existingOtp.destroy();
 
     // Generate token
     const token = generateToken(user.id);
@@ -274,4 +360,4 @@ const googleAuth = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, googleAuth };
+module.exports = { sendOtp, register, login, getMe, googleAuth };

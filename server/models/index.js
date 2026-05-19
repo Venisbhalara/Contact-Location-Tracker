@@ -5,7 +5,10 @@ const TrackingRequest = require('./TrackingRequest');
 const AccessRequest   = require('./AccessRequest');
 const ActivityLog     = require('./ActivityLog');
 const Payment         = require('./Payment');
+const Group           = require('./Group');
+const GroupMember     = require('./GroupMember');
 
+// ── Existing associations ─────────────────────────────────────────────────────
 User.hasMany(TrackingRequest, { foreignKey: 'userId', as: 'trackingRequests', onDelete: 'CASCADE' });
 TrackingRequest.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
@@ -18,4 +21,14 @@ ActivityLog.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 User.hasMany(Payment, { foreignKey: 'userId', as: 'payments', onDelete: 'CASCADE' });
 Payment.belongsTo(User, { foreignKey: 'userId', as: 'user' });
 
-module.exports = { sequelize, User, TrackingRequest, AccessRequest, ActivityLog, Payment };
+// ── Group associations ────────────────────────────────────────────────────────
+User.hasMany(Group, { foreignKey: 'userId', as: 'groups', onDelete: 'CASCADE' });
+Group.belongsTo(User, { foreignKey: 'userId', as: 'owner' });
+
+Group.hasMany(GroupMember, { foreignKey: 'groupId', as: 'members', onDelete: 'CASCADE' });
+GroupMember.belongsTo(Group, { foreignKey: 'groupId', as: 'group' });
+
+GroupMember.belongsTo(TrackingRequest, { foreignKey: 'trackingRequestId', as: 'trackingRequest' });
+TrackingRequest.hasOne(GroupMember, { foreignKey: 'trackingRequestId', as: 'groupMember' });
+
+module.exports = { sequelize, User, TrackingRequest, AccessRequest, ActivityLog, Payment, Group, GroupMember };

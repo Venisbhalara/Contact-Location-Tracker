@@ -34,7 +34,7 @@ const runMigrations = require("./utils/dbRepair");
 global.locationUpdatesToday = 0;
 
 // Import models to register them with Sequelize (must happen before sync)
-const { User, TrackingRequest } = require("./models/index");
+const { User, TrackingRequest, GroupMember } = require("./models/index");
 const { triggerBackgroundPing } = require("./controllers/pushController");
 
 const app = express();
@@ -126,6 +126,7 @@ app.use("/api/access", require("./routes/access"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/push", require("./routes/push"));
 app.use("/api/payment", require("./routes/paymentRoutes"));
+app.use("/api/groups", require("./routes/groups"));
 
 // Root check
 app.get("/", (req, res) => {
@@ -176,6 +177,12 @@ io.on("connection", (socket) => {
     console.log(` ${socket.id} joined room: ${token}`);
   });
 
+  // Owner joins a group room to receive all members' location updates at once
+  socket.on("join-group-room", (groupId) => {
+    socket.join(`group:${groupId}`);
+    console.log(` ${socket.id} joined group room: group:${groupId}`);
+  });
+
   socket.on("join-admin-global", () => {
     socket.join("admin_global");
     console.log(` Admin ${socket.id} joined admin_global room`);
@@ -212,7 +219,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("send-location", ({ token, latitude, longitude, accuracy }) => {
+  socket.on("send-location", async ({ token, latitude, longitude, accuracy }) => {
     // Admin dashboard tracking
     global.locationUpdatesToday = (global.locationUpdatesToday || 0) + 1;
 
@@ -230,6 +237,31 @@ io.on("connection", (socket) => {
       token,
       ...payload,
     });
+
+    // ── Group Tracking: broadcast to the group room if this token belongs to a group member ──
+    try {
+      const tracking = await TrackingRequest.findOne({ where: { token }, attributes: ["id"] });
+      if (tracking) {
+        const groupMember = await GroupMember.findOne({
+          where: { trackingRequestId: tracking.id },
+          attributes: ["id", "groupId", "label", "color"],
+        });
+        if (groupMember) {
+          io.to(`group:${groupMember.groupId}`).emit("group-location-update", {
+            memberId: groupMember.id,
+            label: groupMember.label,
+            color: groupMember.color,
+            latitude,
+            longitude,
+            accuracy,
+            locationMode: "gps",
+            timestamp: new Date(),
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("[GroupTracking] Failed to broadcast group location update:", e.message);
+    }
   });
 
   socket.on("disconnect", async () => {

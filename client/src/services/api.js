@@ -55,4 +55,13 @@ export const getAccessStatus = () => API.get('/access/status');
 export const createPaymentOrder = (data) => API.post('/payment/create-order', data);
 export const verifyPayment = (data) => API.post('/payment/verify', data);
 
+// ── Groups (Multi-User Tracking) ──────────────────────────────────────────────
+export const createGroup       = (data)              => API.post('/groups', data);
+export const getUserGroups     = ()                  => API.get('/groups');
+export const getGroupDetails   = (groupId)           => API.get(`/groups/${groupId}`);
+export const deleteGroup       = (groupId)           => API.delete(`/groups/${groupId}`);
+export const addGroupMember    = (groupId, data)     => API.post(`/groups/${groupId}/members`, data);
+export const removeGroupMember = (groupId, memberId) => API.delete(`/groups/${groupId}/members/${memberId}`);
+
 export default API;
+

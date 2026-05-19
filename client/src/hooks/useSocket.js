@@ -171,3 +171,83 @@ const useSocket = (token) => {
 };
 
 export default useSocket;
+
+/**
+ * useGroupSocket — connects to Socket.IO and joins a group room.
+ * Used by the GROUP MAP page to receive live locations of all members.
+ *
+ * Returns:
+ *   members — Map<memberId, { label, color, latitude, longitude, accuracy,
+ *                             locationMode, timestamp, sharerOnline }>
+ *   connected — boolean
+ *   removedMemberId — id of the last removed member (so the map can clean it up)
+ *   groupDeleted — true if the group owner deleted the group
+ */
+export const useGroupSocket = (groupId) => {
+  const socketRef = useRef(null);
+  const [connected, setConnected] = useState(false);
+  // members is stored as a plain object keyed by memberId for easy React state updates
+  const [members, setMembers] = useState({});
+  const [removedMemberId, setRemovedMemberId] = useState(null);
+  const [groupDeleted, setGroupDeleted] = useState(false);
+
+  useEffect(() => {
+    if (!groupId) return;
+
+    socketRef.current = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+    });
+    const socket = socketRef.current;
+
+    socket.on('connect', () => {
+      setConnected(true);
+      // Join the group room so we receive all member updates
+      socket.emit('join-group-room', groupId);
+    });
+
+    socket.on('disconnect', () => setConnected(false));
+    socket.on('connect_error', () => setConnected(false));
+
+    // Live GPS update from any member in this group
+    socket.on('group-location-update', (data) => {
+      const { memberId, label, color, latitude, longitude, accuracy, locationMode, timestamp } = data;
+      setMembers((prev) => ({
+        ...prev,
+        [memberId]: {
+          ...(prev[memberId] || {}),
+          label,
+          color,
+          latitude,
+          longitude,
+          accuracy,
+          locationMode: locationMode || 'gps',
+          sharerOnline: true,
+          timestamp: new Date(timestamp),
+        },
+      }));
+    });
+
+    // Owner removed a member
+    socket.on('group-member-removed', ({ memberId }) => {
+      setRemovedMemberId(memberId);
+      setMembers((prev) => {
+        const next = { ...prev };
+        delete next[memberId];
+        return next;
+      });
+    });
+
+    // Owner deleted the entire group
+    socket.on('group-deleted', () => {
+      setGroupDeleted(true);
+    });
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+      setConnected(false);
+    };
+  }, [groupId]);
+
+  return { members, connected, removedMemberId, groupDeleted };
+};

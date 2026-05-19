@@ -12,6 +12,9 @@ const CreateTracking = lazy(() => import('./pages/tracking/CreateTracking'))
 const TrackingLink   = lazy(() => import('./pages/tracking/TrackingLink'))
 const LiveMap        = lazy(() => import('./pages/tracking/LiveMap'))
 const GhostLocation  = lazy(() => import('./pages/tracking/GhostLocation'))
+const GroupDashboard = lazy(() => import('./pages/tracking/GroupDashboard'))
+const GroupDetail    = lazy(() => import('./pages/tracking/GroupDetail'))
+const GroupMap       = lazy(() => import('./pages/tracking/GroupMap'))
 const Profile        = lazy(() => import('./pages/user/Profile'))
 const PrivacyPolicy  = lazy(() => import('./pages/legal/PrivacyPolicy'))
 const Terms          = lazy(() => import('./pages/legal/Terms'))
@@ -107,6 +110,9 @@ function App() {
             <Route path="/profile"             element={<Profile />} />
             <Route path="/tracking/create"     element={<CreateTracking />} />
             <Route path="/tracking/map/:token" element={<LiveMap />} />
+            <Route path="/groups"              element={<GroupDashboard />} />
+            <Route path="/groups/:groupId"     element={<GroupDetail />} />
+            <Route path="/groups/:groupId/map" element={<GroupMap />} />
           </Route>
 
           {/* Catch-all */}

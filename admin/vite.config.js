@@ -15,10 +15,31 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5005',
         changeOrigin: true,
+        secure: false,
+        // Suppress noisy proxy errors (e.g. client disconnects mid-request)
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
+            if (err.code !== 'ECONNRESET' && err.code !== 'ECONNABORTED') {
+              console.error('[proxy /api] error:', err.message);
+            }
+          });
+        },
       },
       '/socket.io': {
         target: 'http://localhost:5005',
+        changeOrigin: true,   // ← REQUIRED — fixes Origin header mismatch
+        rewriteWsOrigin: true, // ← REQUIRED in Vite 5+ for ws upgrades
         ws: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
+            // ECONNABORTED / ECONNRESET are normal when a browser tab closes.
+            // Swallow them so the console stays clean.
+            if (err.code !== 'ECONNRESET' && err.code !== 'ECONNABORTED') {
+              console.error('[proxy /socket.io] error:', err.message);
+            }
+          });
+        },
       },
     },
   },
@@ -28,3 +49,4 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
   },
 })
+

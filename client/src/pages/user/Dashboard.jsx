@@ -189,7 +189,7 @@ const Dashboard = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           {stats.map((s) => (
             <div
               key={s.label}
@@ -217,6 +217,39 @@ const Dashboard = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* ── GROUP TRACKING BANNER ── */}
+        <div className="relative rounded-2xl border border-indigo-500/20 overflow-hidden mb-10 transition-transform duration-300 hover:-translate-y-0.5"
+          style={{ background: "rgba(255,255,255,0.02)" }}>
+          <div className="absolute inset-0 opacity-20"
+            style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.3) 0%, rgba(168,85,247,0.15) 100%)" }} />
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border border-indigo-500/30 flex-shrink-0"
+                style={{ background: "rgba(99,102,241,0.15)" }}>
+                👥
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-base">Group Tracking</h3>
+                <p className="text-slate-400 text-sm mt-0.5">
+                  Track family, team or fleet — multiple people on one live map.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex -space-x-1">
+                {["#22c55e","#38bdf8","#f59e0b","#fb7185","#a78bfa"].map((c) => (
+                  <div key={c} className="w-6 h-6 rounded-full border-2 border-[#0d0d17]" style={{ background: c }} />
+                ))}
+              </div>
+              <Link to="/groups"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90 whitespace-nowrap"
+                style={{ background: "linear-gradient(135deg, #6366f1, #a855f7)" }}>
+                Manage Groups →
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Table Section */}
